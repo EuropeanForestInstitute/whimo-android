@@ -24,8 +24,8 @@ android {
         applicationId "com.whimo"
         minSdk 26
         targetSdk 36
-        versionCode 55
-        versionName "1.5"
+        versionCode 59
+        versionName "1.8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -146,6 +146,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-config")
 
     // Koin
     implementation 'io.insert-koin:koin-android:4.1.1'

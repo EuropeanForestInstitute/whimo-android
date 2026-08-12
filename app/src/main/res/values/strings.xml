@@ -46,12 +46,16 @@
     <string name="or">or</string>
     <string name="google">Google</string>
     <string name="continue_with_google">Continue with Google</string>
+    <string name="google_sign_in_no_credentials">Google sign-in is unavailable. Please try another login method.</string>
+    <string name="google_sign_in_failed">Google sign-in failed. Please try again.</string>
     <string name="have_account">Don\'t have an account?</string>
     <string name="send_code">Send Code</string>
     <string name="back_to_login">Back to Log In</string>
     <string name="continue_with_phone_number">Continue with phone number</string>
     <string name="continue_with_email">Continue with email</string>
     <string name="invalid_phone">Invalid phone number</string>
+    <string name="phone_verification_unavailable_registration">Phone verification isn\'t available in your country yet. Please use email instead.</string>
+    <string name="phone_verification_unavailable_settings">Phone verification isn\'t available in your country yet.</string>
     <string name="invalid_password">Password must have at least 8 characters, including an uppercase letter and a digit.</string>
     <string name="invalid_confirm_password">Passwords do not match</string>
     <string name="create_account">Register</string>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<defaults>
+    <entry>
+        <key>registration_phone_region_policy</key>
+        <value>{
+            "schemaVersion": 1,
+            "enabled": true,
+            "allowedRegions": [
+                {
+                    "regionCode": "AO",
+                    "regionName": "Angola",
+                    "callingCode": 244,
+                    "e164Prefix": "+244"
+                },
+                {
+                    "regionCode": "GT",
+                    "regionName": "Guatemala",
+                    "callingCode": 502,
+                    "e164Prefix": "+502"
+                },
+                {
+                    "regionCode": "HN",
+                    "regionName": "Honduras",
+                    "callingCode": 504,
+                    "e164Prefix": "+504"
+                },
+                {
+                    "regionCode": "MZ",
+                    "regionName": "Mozambique",
+                    "callingCode": 258,
+                    "e164Prefix": "+258"
+                },
+                {
+                    "regionCode": "SL",
+                    "regionName": "Sierra Leone",
+                    "callingCode": 232,
+                    "e164Prefix": "+232"
+                },
+                {
+                    "regionCode": "CH",
+                    "regionName": "Switzerland",
+                    "callingCode": 41,
+                    "e164Prefix": "+41"
+                },
+                {
+                    "regionCode": "BR",
+                    "regionName": "Brazil",
+                    "callingCode": 55,
+                    "e164Prefix": "+55"
+                },
+                {
+                    "regionCode": "CO",
+                    "regionName": "Colombia",
+                    "callingCode": 57,
+                    "e164Prefix": "+57"
+                },
+                {
+                    "regionCode": "SV",
+                    "regionName": "El Salvador",
+                    "callingCode": 503,
+                    "e164Prefix": "+503"
+                },
+                {
+                    "regionCode": "MY",
+                    "regionName": "Malaysia",
+                    "callingCode": 60,
+                    "e164Prefix": "+60"
+                },
+                {
+                    "regionCode": "NI",
+                    "regionName": "Nicaragua",
+                    "callingCode": 505,
+                    "e164Prefix": "+505"
+                },
+                {
+                    "regionCode": "PY",
+                    "regionName": "Paraguay",
+                    "callingCode": 595,
+                    "e164Prefix": "+595"
+                },
+                {
+                    "regionCode": "PE",
+                    "regionName": "Peru",
+                    "callingCode": 51,
+                    "e164Prefix": "+51"
+                }
+            ]
+        }</value>
+    </entry>
+</defaults>

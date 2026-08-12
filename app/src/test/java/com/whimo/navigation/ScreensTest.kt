@@ -19,28 +19,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.whimo.di
+package com.whimo.navigation
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import com.whimo.providers.ResourceProvider
-import com.whimo.providers.ResourceProviderImpl
-import com.whimo.providers.FirebaseRemoteConfigProvider
-import com.whimo.providers.RemoteConfigProvider
-import com.whimo.providers.SharedPreferencesProvider
-import com.whimo.providers.SharedPreferencesProviderImpl
-import com.whimo.utils.AppLocaleManager
-import com.whimo.utils.AppLocaleManagerImpl
-import org.koin.android.ext.koin.androidContext
-import org.koin.dsl.module
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
+class ScreensTest {
 
+    @Test
+    fun `putArgs encodes slash in json path argument`() {
+        // Given
+        val json = """{"name":"Cocoa Paste / Liquor"}"""
 
-val providersModule = module {
-    single { FirebaseRemoteConfig.getInstance() }
-    single<RemoteConfigProvider> {
-        FirebaseRemoteConfigProvider(remoteConfig = get(), gson = get(), resourceProvider = get())
+        // When
+        val route = Screens.ConvertCommodity.putArgs(Screens.ARG_KEY_JSON to json)
+
+        // Then
+        assertEquals(
+            """screen_convert_commodity/%7B%22name%22%3A%22Cocoa%20Paste%20%2F%20Liquor%22%7D""",
+            route
+        )
+        assertFalse(route.contains("Cocoa Paste / Liquor"))
     }
-    factory<SharedPreferencesProvider> { SharedPreferencesProviderImpl(androidContext()) }
-    factory<ResourceProvider> { ResourceProviderImpl(androidContext()) }
-    factory<AppLocaleManager> { AppLocaleManagerImpl() }
+
+    @Test
+    fun `convert commodity route has no whitespace before json argument`() {
+        // Given
+        val json = """{"id":"recipe"}"""
+
+        // When
+        val route = Screens.ConvertCommodity.putArgs(Screens.ARG_KEY_JSON to json)
+
+        // Then
+        assertFalse(route.startsWith("screen_convert_commodity "))
+    }
 }

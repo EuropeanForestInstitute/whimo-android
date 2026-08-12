@@ -28,17 +28,26 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.whimo.BuildConfig.GOOGLE_AUTH_CLIENT_ID
 import java.security.SecureRandom
+
+sealed interface GoogleSignInResult {
+    data class Success(val idToken: String) : GoogleSignInResult
+    data object Cancelled : GoogleSignInResult
+    data object NoCredential : GoogleSignInResult
+    data object Failed : GoogleSignInResult
+}
 
 object GoogleSignInHelper {
 
     suspend fun signIn(
         activity: Activity,
         enableNonce: Boolean = true
-    ): String? {
+    ): GoogleSignInResult {
         val nonce = generateNonce()
 
         val googleIdOptionBuilder = GetGoogleIdOption.Builder()
@@ -60,16 +69,20 @@ object GoogleSignInHelper {
         return try {
             val result = credentialManager.getCredential(activity, request)
             val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
-            Log.i("GoogleSignIn", "Google ID Token: ${googleIdTokenCredential.idToken}")
-            googleIdTokenCredential.idToken
+            Log.i("GoogleSignIn", "Google ID token received")
+            GoogleSignInResult.Success(googleIdTokenCredential.idToken)
         } catch (e: GetCredentialCancellationException) {
             Log.w("GoogleSignIn", "Sign-in cancelled by user")
-            e.printStackTrace()
-            null
+            GoogleSignInResult.Cancelled
+        } catch (e: NoCredentialException) {
+            Log.w("GoogleSignIn", "No Google credentials available", e)
+            GoogleSignInResult.NoCredential
         } catch (e: GetCredentialException) {
-            Log.e("GoogleSignIn", "Sign-in failed: ${e.message}")
-            e.printStackTrace()
-            null
+            Log.e("GoogleSignIn", "Sign-in failed: ${e.message}", e)
+            GoogleSignInResult.Failed
+        } catch (e: GoogleIdTokenParsingException) {
+            Log.e("GoogleSignIn", "Failed to parse Google credential", e)
+            GoogleSignInResult.Failed
         }
     }
 

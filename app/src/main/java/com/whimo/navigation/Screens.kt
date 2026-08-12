@@ -21,6 +21,8 @@
  */
 package com.whimo.navigation
 
+import android.net.Uri
+
 private fun String.addArgKeys(vararg keys: String): String {
     var route = this
     keys.forEach { route = "$route/{$it}" }
@@ -55,7 +57,7 @@ sealed class Screens(val route: String) {
     // Balances
     data object GroupBalances : Screens("screen_group_balances")
     data object ConvertRecipes : Screens("screen_convert_recipes".addArgKeys(ARG_KEY_JSON))
-    data object ConvertCommodity : Screens("screen_convert_commodity ".addArgKeys(ARG_KEY_JSON))
+    data object ConvertCommodity : Screens("screen_convert_commodity".addArgKeys(ARG_KEY_JSON))
 
 
     // Create transaction
@@ -90,7 +92,7 @@ sealed class Screens(val route: String) {
 
     fun putArgs(vararg args: Pair<String, String>): String {
         var route = route
-        args.forEach { route = route.replace("{${it.first}}", it.second) }
+        args.forEach { route = route.replace("{${it.first}}", Uri.encode(it.second)) }
         return route
     }
 

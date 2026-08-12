@@ -52,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -315,6 +316,7 @@ fun PhoneNumberField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 
     onValueChange: (String) -> Unit = {},
+    onFocusChanged: (Boolean) -> Unit = {},
     onPhoneRegionClicked: (() -> Unit)? = null,
     onContactsClicked: (() -> Unit)? = null,
 ) {
@@ -385,6 +387,7 @@ fun PhoneNumberField(
         },
 
         onValueChange = onValueChange,
+        onFocusChanged = onFocusChanged,
     )
 }
 
@@ -415,6 +418,7 @@ fun BaseTextField(
     suffix: @Composable (() -> Unit)? = null,
 
     onValueChange: (String) -> Unit = {},
+    onFocusChanged: (Boolean) -> Unit = {},
 
     focusedBorderColor: Color = MaterialTheme.colorScheme.primary,
     unfocusedBorderColor: Color = MaterialTheme.colorScheme.outline,
@@ -502,7 +506,9 @@ fun BaseTextField(
         }
 
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { onFocusChanged(it.isFocused) },
             shape = RoundedCornerShape(8.dp),
 
             enabled = isEnabled,

@@ -54,8 +54,8 @@ import com.whimo.presentation.ui.components.PhoneNumberField
 import com.whimo.presentation.ui.components.dialogs.PhoneRegionDialog
 import com.whimo.presentation.ui.theme.TextStyleBodyM
 import com.whimo.presentation.ui.theme.WhimoTheme
+import com.whimo.utils.ForceUpdateController
 import com.whimo.utils.LocationPermissionRequester
-import com.whimo.utils.PhoneNumberUtils
 import org.koin.androidx.compose.koinViewModel
 
 @Preview
@@ -84,6 +84,7 @@ fun EditPhoneScreen(
     var requestPermission by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var showPhoneRegionDialog by remember { mutableStateOf(false) }
+    val forceUpdateController = remember { ForceUpdateController() }
 
     if (viewModel != null) {
         ObserveEffects(viewModel) { effect ->
@@ -102,6 +103,9 @@ fun EditPhoneScreen(
                     navController.navigate(
                         Screens.ConfirmPhoneCodeScreen.putArgs(Screens.ARG_KEY_PHONE to effect.phone)
                     )
+                }
+                is EditPhoneContract.Effect.ForceUpdateFields -> {
+                    forceUpdateController.apply()
                 }
             }
         }
@@ -144,6 +148,7 @@ fun EditPhoneScreen(
             )
 
             PhoneNumberField(
+                controller = forceUpdateController,
                 labelText = stringResource(id = R.string.phone),
                 hintText = stringResource(id = R.string.phone_digits),
                 errorText = binding.phoneError,

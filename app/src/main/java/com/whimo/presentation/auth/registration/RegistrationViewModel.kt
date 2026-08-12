@@ -29,12 +29,15 @@ import com.whimo.base.CoreViewEvent
 import com.whimo.data.base.common.onError
 import com.whimo.data.base.common.onSuccess
 import com.whimo.domain.auth.AuthInteractor
+import com.whimo.domain.config.RegistrationPhoneRegionPolicy
 import com.whimo.network.ErrorHandler
 import com.whimo.presentation.ui.models.Languages
 import com.whimo.providers.ResourceProvider
+import com.whimo.providers.RemoteConfigProvider
 import com.whimo.providers.SharedPreferencesProvider
 import com.whimo.utils.AppLocaleManager
 import com.whimo.utils.GoogleSignInHelper
+import com.whimo.utils.GoogleSignInResult
 import com.whimo.utils.PhoneNumberUtils
 import com.whimo.utils.ValidationUtils
 import com.whimo.utils.getLastLocation
@@ -45,6 +48,7 @@ class RegistrationViewModel(
     private val appLocaleManager: AppLocaleManager,
     private val errorHandler: ErrorHandler,
     private val resourceProvider: ResourceProvider,
+    private val remoteConfigProvider: RemoteConfigProvider,
 ) : BaseViewModel<RegistrationContract.Binding>() {
 
     private var email: String = ""
@@ -57,7 +61,9 @@ class RegistrationViewModel(
     private var passwordError: String = ""
     private var confirmPasswordError: String = ""
     private var termsAccepted: Boolean = false
+    private var phoneFocused: Boolean = false
     private var selectedLanguage: String = Languages.ENGLISH.languageCode
+    private var phoneRegionPolicy = RegistrationPhoneRegionPolicy.Disabled
 
     override fun createBinding(): RegistrationContract.Binding {
         return RegistrationContract.Binding()
@@ -70,6 +76,7 @@ class RegistrationViewModel(
             is RegistrationContract.Event.OnEmailChanged -> onEmailChanged(event.email)
             is RegistrationContract.Event.OnPhoneRegionChanged -> onPhoneRegionChanged(event.phoneRegion)
             is RegistrationContract.Event.OnPhoneChanged -> onPhoneChanged(event.phone)
+            is RegistrationContract.Event.OnPhoneFocusChanged -> onPhoneFocusChanged(event.isFocused)
             is RegistrationContract.Event.OnPasswordChanged -> onPasswordChanged(event.password)
             is RegistrationContract.Event.OnConfirmPasswordChanged -> onConfirmPasswordChanged(event.confirmPassword)
             is RegistrationContract.Event.OnTermsAcceptanceChange -> onTermsAcceptanceChange(event.termsAccepted)
@@ -89,6 +96,14 @@ class RegistrationViewModel(
     }
 
     private fun updateView() {
+        val phoneRegionUnsupported = !phoneRegionPolicy.isPhoneRegionSupported(phoneRegion)
+        val showPhoneRegionUnsupportedError = phoneRegionUnsupported &&
+                (phoneFocused || (phoneNumber.isNotEmpty() && email.isBlank()))
+        val emailRequiredByPhonePolicy = phoneRegionPolicy.requiresEmailForRegistration(
+            phoneRegion = phoneRegion,
+            email = email,
+        )
+
         updateBinding { b ->
             b.email = email
             b.phoneNumber = phoneNumber
@@ -96,17 +111,27 @@ class RegistrationViewModel(
             b.password = password
             b.confirmPassword = confirmPassword
             b.emailError = emailError
-            b.phoneError = phoneError
+            b.phoneError = if (showPhoneRegionUnsupportedError) {
+                resourceProvider.getString(R.string.phone_verification_unavailable_registration)
+            } else {
+                phoneError
+            }
             b.passwordError = passwordError
             b.confirmPasswordError = confirmPasswordError
             b.termsAccepted = termsAccepted
-            b.registrationEnabled = (email.isNotEmpty() || phoneNumber.isNotEmpty()) && password.isNotEmpty() && confirmPassword.isNotEmpty() && termsAccepted
+            b.registrationEnabled = (email.isNotEmpty() || phoneNumber.isNotEmpty()) &&
+                    password.isNotEmpty() &&
+                    confirmPassword.isNotEmpty() &&
+                    termsAccepted &&
+                    !emailRequiredByPhonePolicy
+            b.emailRequired = phoneRegionUnsupported
             b.selectedLanguage = selectedLanguage
         }
     }
     
     private fun onCreate(context: Context) {
         selectedLanguage = appLocaleManager.getLanguageCode(context)
+        refreshPhoneRegionPolicy()
 
         launch {
             val location = getLastLocation(context)
@@ -123,6 +148,17 @@ class RegistrationViewModel(
         }
     }
 
+    private fun refreshPhoneRegionPolicy() {
+        phoneRegionPolicy = remoteConfigProvider.getRegistrationPhoneRegionPolicy()
+        updateView()
+
+        launch {
+            remoteConfigProvider.refresh()
+            phoneRegionPolicy = remoteConfigProvider.getRegistrationPhoneRegionPolicy()
+            updateView()
+        }
+    }
+
     private fun onEmailChanged(email: String) {
         this.email = email
         this.emailError = ""
@@ -132,6 +168,11 @@ class RegistrationViewModel(
     private fun onPhoneChanged(phone: String) {
         this.phoneNumber = phone
         this.phoneError = ""
+        updateView()
+    }
+
+    private fun onPhoneFocusChanged(isFocused: Boolean) {
+        this.phoneFocused = isFocused
         updateView()
     }
 
@@ -163,6 +204,11 @@ class RegistrationViewModel(
     }
 
     private fun onRegisterClick() {
+        if (phoneRegionPolicy.requiresEmailForRegistration(phoneRegion, email)) {
+            updateView()
+            return
+        }
+
         val emailValidationStatus = ValidationUtils.validateEmail(email)
         val phoneValidationStatus = ValidationUtils.validatePhoneNumber(phoneRegion.phoneCode, phoneNumber)
         val passwordValidationStatus = ValidationUtils.validatePassword(password)
@@ -218,13 +264,16 @@ class RegistrationViewModel(
                 .onSuccess {
                     setEffect(RegistrationContract.Effect.ToggleLoader(false))
 
-                    if (email.isNotEmpty() && phone.isNotEmpty()) {
+                    val phoneVerificationAvailable = phone.isNotEmpty() &&
+                            phoneRegionPolicy.isPhoneRegionSupported(phoneRegion)
+
+                    if (email.isNotEmpty() && phoneVerificationAvailable) {
                         setEffect(RegistrationContract.Effect.ShowVerificationMethodBottomSheet)
 
                     } else if (email.isNotEmpty()) {
                         setEffect(RegistrationContract.Effect.NavigateToEmailOtp(email))
 
-                    } else {
+                    } else if (phoneVerificationAvailable) {
                         setEffect(RegistrationContract.Effect.NavigateToPhoneOtp(phone))
                     }
                 }
@@ -244,6 +293,15 @@ class RegistrationViewModel(
     }
 
     private fun onPhoneVerificationMethodChosen() {
+        if (!phoneRegionPolicy.isPhoneRegionSupported(phoneRegion)) {
+            setEffect(
+                RegistrationContract.Effect.ShowMessage(
+                    resourceProvider.getString(R.string.phone_verification_unavailable_settings)
+                )
+            )
+            return
+        }
+
         val phone = "+${phoneRegion.phoneCode}$phoneNumber"
         setEffect(RegistrationContract.Effect.NavigateToPhoneOtp(phone))
     }
@@ -254,9 +312,23 @@ class RegistrationViewModel(
 
     private fun onGoogleClick(activity: Activity) {
         launch {
-            val idToken = GoogleSignInHelper.signIn(activity)
-            if (idToken != null) {
-                authGoogle(idToken)
+            when (val result = GoogleSignInHelper.signIn(activity)) {
+                is GoogleSignInResult.Success -> authGoogle(result.idToken)
+                GoogleSignInResult.Cancelled -> Unit
+                GoogleSignInResult.NoCredential -> {
+                    setEffect(
+                        RegistrationContract.Effect.ShowMessage(
+                            resourceProvider.getString(R.string.google_sign_in_no_credentials)
+                        )
+                    )
+                }
+                GoogleSignInResult.Failed -> {
+                    setEffect(
+                        RegistrationContract.Effect.ShowMessage(
+                            resourceProvider.getString(R.string.google_sign_in_failed)
+                        )
+                    )
+                }
             }
         }
     }

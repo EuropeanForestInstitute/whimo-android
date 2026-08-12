@@ -36,6 +36,7 @@ import com.whimo.providers.ResourceProvider
 import com.whimo.providers.SharedPreferencesProvider
 import com.whimo.utils.AppLocaleManager
 import com.whimo.utils.GoogleSignInHelper
+import com.whimo.utils.GoogleSignInResult
 import com.whimo.utils.PhoneNumberUtils
 import com.whimo.utils.ValidationUtils
 import com.whimo.utils.getLastLocation
@@ -199,18 +200,33 @@ class LoginViewModel(
 
     private fun onGoogleClick(activity: Activity) {
         launch {
-            val idToken = GoogleSignInHelper.signIn(activity)
-            if (idToken != null) {
-                authGoogle(idToken)
-            }
+            handleGoogleSignInResult(GoogleSignInHelper.signIn(activity))
         }
     }
 
     private fun onGoogleLongClick(activity: Activity) {
         launch {
-            val idToken = GoogleSignInHelper.signIn(activity, false)
-            if (idToken != null) {
-                authGoogle(idToken)
+            handleGoogleSignInResult(GoogleSignInHelper.signIn(activity, false))
+        }
+    }
+
+    private fun handleGoogleSignInResult(result: GoogleSignInResult) {
+        when (result) {
+            is GoogleSignInResult.Success -> authGoogle(result.idToken)
+            GoogleSignInResult.Cancelled -> Unit
+            GoogleSignInResult.NoCredential -> {
+                setEffect(
+                    LoginContract.Effect.ShowMessage(
+                        resourceProvider.getString(R.string.google_sign_in_no_credentials)
+                    )
+                )
+            }
+            GoogleSignInResult.Failed -> {
+                setEffect(
+                    LoginContract.Effect.ShowMessage(
+                        resourceProvider.getString(R.string.google_sign_in_failed)
+                    )
+                )
             }
         }
     }

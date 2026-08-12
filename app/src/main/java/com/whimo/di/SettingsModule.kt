@@ -55,7 +55,7 @@ val settingsModule = module {
     viewModel { SettingsViewModel(interactor = get(), errorHandler = get(), resourceProvider = get()) }
     viewModel { AccountInfoViewModel(interactor = get(), errorHandler = get(), sharedPreferencesProvider = get(), resourceProvider = get()) }
     viewModel { EditEmailViewModel(interactor = get(), errorHandler = get(), resourceProvider = get()) }
-    viewModel { EditPhoneViewModel(interactor = get(), errorHandler = get(), resourceProvider = get()) }
+    viewModel { EditPhoneViewModel(interactor = get(), errorHandler = get(), resourceProvider = get(), remoteConfigProvider = get()) }
     viewModel { ChangePasswordViewModel(interactor = get(), errorHandler = get(), resourceProvider = get()) }
     viewModel { NotificationSettingsViewModel(interactor = get(), errorHandler = get(), sharedPreferencesProvider = get(), resourceProvider = get()) }
     viewModel { LanguageViewModel(appLocaleManager = get()) }

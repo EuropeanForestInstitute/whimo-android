@@ -179,6 +179,8 @@ fun RegistrationScreen(
             .background(color = MaterialTheme.colorScheme.surface)
             .verticalScroll(rememberScrollState()),
     ) {
+        val emailLabel = stringResource(id = R.string.email) + if (binding.emailRequired) "*" else ""
+
         Toolbar3(
             title = stringResource(id = R.string.create_account),
             description = stringResource(id = R.string.create_account_instructions),
@@ -193,7 +195,7 @@ fun RegistrationScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             EmailField(
-                labelText = stringResource(id = R.string.email),
+                labelText = emailLabel,
                 hintText = stringResource(id = R.string.enter_email),
                 errorText = binding.emailError,
                 email = binding.email,
@@ -210,6 +212,9 @@ fun RegistrationScreen(
                 phoneNumber = binding.phoneNumber,
                 onValueChange = {
                     viewModel?.setEvent(RegistrationContract.Event.OnPhoneChanged(it))
+                },
+                onFocusChanged = {
+                    viewModel?.setEvent(RegistrationContract.Event.OnPhoneFocusChanged(it))
                 },
                 onPhoneRegionClicked = {
                     showPhoneRegionDialog = true
@@ -292,12 +297,13 @@ fun RegistrationScreen(
             }
 
             GoogleButton(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                viewModel?.setEvent(
-                    RegistrationContract.Event.OnGoogleClick(context.findActivity())
-                )
-            }
+                modifier = Modifier.fillMaxWidth(),
+                onClick =  {
+                    viewModel?.setEvent(
+                        RegistrationContract.Event.OnGoogleClick(context.findActivity())
+                    )
+                }
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

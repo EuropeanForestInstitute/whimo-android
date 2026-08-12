@@ -44,6 +44,7 @@ object RegistrationContract {
 
         var termsAccepted: Boolean = false,
         var registrationEnabled: Boolean = false,
+        var emailRequired: Boolean = false,
 
         var selectedLanguage: String = Languages.ENGLISH.languageName,
     ) : CoreViewBinding
@@ -54,6 +55,7 @@ object RegistrationContract {
         data class OnEmailChanged(val email: String) : Event()
         data class OnPhoneRegionChanged(val phoneRegion: PhoneNumberUtils.PhoneRegion) : Event()
         data class OnPhoneChanged(val phone: String) : Event()
+        data class OnPhoneFocusChanged(val isFocused: Boolean) : Event()
         data class OnPasswordChanged(val password: String) : Event()
         data class OnConfirmPasswordChanged(val confirmPassword: String) : Event()
         data class OnTermsAcceptanceChange(val termsAccepted: Boolean) : Event()

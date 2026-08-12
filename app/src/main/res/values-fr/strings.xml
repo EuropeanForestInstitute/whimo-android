@@ -46,12 +46,16 @@
     <string name="or">ou</string>
     <string name="google">Google</string>
     <string name="continue_with_google">Continuer avec Google</string>
+    <string name="google_sign_in_no_credentials">La connexion avec Google est indisponible. Veuillez essayer une autre méthode de connexion.</string>
+    <string name="google_sign_in_failed">La connexion avec Google a échoué. Veuillez réessayer.</string>
     <string name="have_account">Vous n\'avez pas de compte ?</string>
     <string name="send_code">Envoyer le code</string>
     <string name="back_to_login">Retour à la connexion</string>
     <string name="continue_with_phone_number">Continuer avec le numéro de téléphone</string>
     <string name="continue_with_email">Continuer avec l\'email</string>
     <string name="invalid_phone">Numéro de téléphone invalide</string>
+    <string name="phone_verification_unavailable_registration">La vérification par téléphone n\'est pas encore disponible dans votre pays. Veuillez utiliser l\'e-mail.</string>
+    <string name="phone_verification_unavailable_settings">La vérification par téléphone n\'est pas encore disponible dans votre pays.</string>
     <string name="invalid_password">Le mot de passe doit contenir au moins 8 caractères, dont une majuscule et un chiffre.</string>
     <string name="invalid_confirm_password">Les mots de passe ne correspondent pas</string>
     <string name="create_account">Créer un compte</string>

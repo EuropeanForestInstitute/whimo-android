@@ -27,9 +27,11 @@ import com.whimo.base.BaseViewModel
 import com.whimo.base.CoreViewEvent
 import com.whimo.data.base.common.onError
 import com.whimo.data.base.common.onSuccess
+import com.whimo.domain.config.RegistrationPhoneRegionPolicy
 import com.whimo.domain.settings.SettingsInteractor
 import com.whimo.network.ErrorHandler
 import com.whimo.providers.ResourceProvider
+import com.whimo.providers.RemoteConfigProvider
 import com.whimo.utils.PhoneNumberUtils
 import com.whimo.utils.ValidationUtils
 import com.whimo.utils.getLastLocation
@@ -38,12 +40,14 @@ class EditPhoneViewModel(
     private val interactor: SettingsInteractor,
     private val errorHandler: ErrorHandler,
     private val resourceProvider: ResourceProvider,
+    private val remoteConfigProvider: RemoteConfigProvider,
 ) : BaseViewModel<EditPhoneContract.Binding>() {
 
     private var phone: String? = null
     private var phoneRegion = PhoneNumberUtils.getDefaultPhoneRegion()
     private var phoneNumber: String = ""
     private var phoneError: String = ""
+    private var phoneRegionPolicy = RegistrationPhoneRegionPolicy.Disabled
 
     override fun createBinding(): EditPhoneContract.Binding {
         return EditPhoneContract.Binding()
@@ -64,15 +68,25 @@ class EditPhoneViewModel(
     }
 
     private fun updateView() {
+        val phoneRegionUnsupported = !phoneRegionPolicy.isPhoneRegionSupported(phoneRegion)
+
         updateBinding { b ->
             b.phoneNumber = phoneNumber
             b.phoneRegion = phoneRegion
-            b.phoneError = phoneError
+            b.phoneError = if (phoneRegionUnsupported) {
+                resourceProvider.getString(R.string.phone_verification_unavailable_settings)
+            } else {
+                phoneError
+            }
+            b.saveEnabled = !phoneRegionUnsupported
         }
     }
 
     private fun onCreate(context: Context, phone: String?) {
-        if (!phone.isNullOrEmpty()) {
+        refreshPhoneRegionPolicy()
+        val hasInitialPhone = !phone.isNullOrEmpty()
+
+        if (hasInitialPhone) {
             this.phone = phone
             val parsedPhone = PhoneNumberUtils.parsePhone(phone)
             this.phoneRegion = parsedPhone.first
@@ -81,21 +95,34 @@ class EditPhoneViewModel(
 
         updateView()
 
-        launch {
-            val location = getLastLocation(context)
+        if (!hasInitialPhone) {
+            launch {
+                val location = getLastLocation(context)
 
-            if (location == null) {
-                setEffect(EditPhoneContract.Effect.RequestLocationPermission)
+                if (location == null) {
+                    setEffect(EditPhoneContract.Effect.RequestLocationPermission)
 
-            } else {
-                PhoneNumberUtils.getCountryCodeFromLocation(context, location)?.let { countryCode ->
-                    phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
-                    updateView()
+                } else {
+                    PhoneNumberUtils.getCountryCodeFromLocation(context, location)?.let { countryCode ->
+                        phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
+                        updateView()
+                    }
                 }
             }
         }
 
         setEffect(EditPhoneContract.Effect.ForceUpdateFields)
+    }
+
+    private fun refreshPhoneRegionPolicy() {
+        phoneRegionPolicy = remoteConfigProvider.getRegistrationPhoneRegionPolicy()
+        updateView()
+
+        launch {
+            remoteConfigProvider.refresh()
+            phoneRegionPolicy = remoteConfigProvider.getRegistrationPhoneRegionPolicy()
+            updateView()
+        }
     }
 
     private fun onPhoneChanged(phone: String) {
@@ -110,6 +137,12 @@ class EditPhoneViewModel(
     }
 
     private fun onSaveClick() {
+        if (!phoneRegionPolicy.isPhoneRegionSupported(phoneRegion)) {
+            phoneError = resourceProvider.getString(R.string.phone_verification_unavailable_settings)
+            updateView()
+            return
+        }
+
         val validationStatus = ValidationUtils.validatePhoneNumber(phoneRegion.phoneCode, phoneNumber)
 
         phoneError = when(validationStatus) {
