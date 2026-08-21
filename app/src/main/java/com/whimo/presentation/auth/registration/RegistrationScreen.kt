@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
@@ -43,6 +44,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +68,8 @@ import com.whimo.extensions.findActivity
 import com.whimo.navigation.Screens
 import com.whimo.presentation.createtransaction.components.DashedDivider
 import com.whimo.presentation.main.MainActivity
+import com.whimo.presentation.main.components.TabBar
+import com.whimo.presentation.main.components.TabItem
 import com.whimo.presentation.main.components.Toolbar3
 import com.whimo.presentation.ui.baseScreen.GoogleButton
 import com.whimo.presentation.ui.baseScreen.LoadingButton
@@ -75,7 +79,6 @@ import com.whimo.presentation.ui.components.PasswordField
 import com.whimo.presentation.ui.components.PhoneNumberField
 import com.whimo.presentation.ui.components.RichTextWithLinks
 import com.whimo.presentation.ui.components.bottomsheets.LanguagesBottomSheet
-import com.whimo.presentation.ui.components.bottomsheets.VerificationMethodBottomSheet
 import com.whimo.presentation.ui.components.dialogs.PhoneRegionDialog
 import com.whimo.presentation.ui.models.Languages
 import com.whimo.presentation.ui.theme.TextStyleBodyM
@@ -83,6 +86,7 @@ import com.whimo.presentation.ui.theme.TextStyleButtonM
 import com.whimo.presentation.ui.theme.WhimoTheme
 import com.whimo.utils.LocationPermissionRequester
 import com.whimo.utils.getResult
+import com.whimo.utils.setResult
 import org.koin.androidx.compose.koinViewModel
 
 @Preview
@@ -108,7 +112,6 @@ fun RegistrationScreen(
 
     var requestPermission by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    var showVerificationMethodBottomSheet by remember { mutableStateOf(false) }
     var showLanguageBottomSheet by remember { mutableStateOf(false) }
     var showPhoneRegionDialog by remember { mutableStateOf(false) }
 
@@ -135,11 +138,12 @@ fun RegistrationScreen(
                 is RegistrationContract.Effect.NavigateLogin -> {
                     navController.popBackStack()
                 }
+                is RegistrationContract.Effect.NavigateLoginWithAlreadyRegisteredAlert -> {
+                    navController.setResult(REGISTRATION_ALREADY_REGISTERED_RESULT_KEY, effect.result)
+                    navController.popBackStack()
+                }
                 is RegistrationContract.Effect.NavigateMainActivity -> {
                     MainActivity.openMain(context.findActivity())
-                }
-                is RegistrationContract.Effect.ShowVerificationMethodBottomSheet -> {
-                    showVerificationMethodBottomSheet = true
                 }
                 is RegistrationContract.Effect.NavigateToEmailOtp -> {
                     navController.navigate(
@@ -179,12 +183,37 @@ fun RegistrationScreen(
             .background(color = MaterialTheme.colorScheme.surface)
             .verticalScroll(rememberScrollState()),
     ) {
-        val emailLabel = stringResource(id = R.string.email) + if (binding.emailRequired) "*" else ""
-
         Toolbar3(
             title = stringResource(id = R.string.create_account),
             description = stringResource(id = R.string.create_account_instructions),
         )
+
+        val registrationTabs = RegistrationTypeTab.entries
+        val tabs = registrationTabs.map { tab ->
+            TabItem(
+                title = stringResource(tab.tabNameRes),
+                onClick = {
+                    viewModel?.setEvent(RegistrationContract.Event.OnTabChanged(tab))
+                }
+            )
+        }
+        val pagerState = rememberPagerState(
+            initialPage = registrationTabs.indexOf(binding.currentTab)
+        ) { tabs.size }
+
+        LaunchedEffect(binding.currentTab) {
+            val selectedPage = registrationTabs.indexOf(binding.currentTab)
+            if (selectedPage >= 0 && pagerState.currentPage != selectedPage) {
+                pagerState.scrollToPage(selectedPage)
+            }
+        }
+
+        TabBar(
+            pagerState = pagerState,
+            tabs = tabs,
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
 
         Column(
             modifier = Modifier
@@ -194,32 +223,37 @@ fun RegistrationScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            EmailField(
-                labelText = emailLabel,
-                hintText = stringResource(id = R.string.enter_email),
-                errorText = binding.emailError,
-                email = binding.email,
-                onValueChange = {
-                    viewModel?.setEvent(RegistrationContract.Event.OnEmailChanged(it))
-                },
-            )
-
-            PhoneNumberField(
-                labelText = stringResource(id = R.string.phone),
-                hintText = stringResource(id = R.string.phone_digits),
-                errorText = binding.phoneError,
-                phoneRegion = binding.phoneRegion,
-                phoneNumber = binding.phoneNumber,
-                onValueChange = {
-                    viewModel?.setEvent(RegistrationContract.Event.OnPhoneChanged(it))
-                },
-                onFocusChanged = {
-                    viewModel?.setEvent(RegistrationContract.Event.OnPhoneFocusChanged(it))
-                },
-                onPhoneRegionClicked = {
-                    showPhoneRegionDialog = true
-                },
-            )
+            when (binding.currentTab) {
+                RegistrationTypeTab.Email -> {
+                    EmailField(
+                        labelText = stringResource(id = R.string.email),
+                        hintText = stringResource(id = R.string.enter_email),
+                        errorText = binding.emailError,
+                        email = binding.email,
+                        onValueChange = {
+                            viewModel?.setEvent(RegistrationContract.Event.OnEmailChanged(it))
+                        },
+                    )
+                }
+                RegistrationTypeTab.Phone -> {
+                    PhoneNumberField(
+                        labelText = stringResource(id = R.string.phone),
+                        hintText = stringResource(id = R.string.phone_digits),
+                        errorText = binding.phoneError,
+                        phoneRegion = binding.phoneRegion,
+                        phoneNumber = binding.phoneNumber,
+                        onValueChange = {
+                            viewModel?.setEvent(RegistrationContract.Event.OnPhoneChanged(it))
+                        },
+                        onFocusChanged = {
+                            viewModel?.setEvent(RegistrationContract.Event.OnPhoneFocusChanged(it))
+                        },
+                        onPhoneRegionClicked = {
+                            showPhoneRegionDialog = true
+                        },
+                    )
+                }
+            }
 
             PasswordField(
                 labelText = stringResource(id = R.string.password),
@@ -356,18 +390,6 @@ fun RegistrationScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Spacer(modifier = Modifier.weight(1f))
         }
-    }
-
-    if (showVerificationMethodBottomSheet) {
-        VerificationMethodBottomSheet(
-            onDismissRequest = { showVerificationMethodBottomSheet = false },
-            onEmailMethodSelected = {
-                viewModel?.setEvent(RegistrationContract.Event.OnEmailVerificationMethodChosen)
-            },
-            onPhoneMethodSelected = {
-                viewModel?.setEvent(RegistrationContract.Event.OnPhoneVerificationMethodChosen)
-            },
-        )
     }
 
     if (showLanguageBottomSheet) {

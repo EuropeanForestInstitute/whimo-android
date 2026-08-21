@@ -73,6 +73,58 @@ class AuthInteractorImplTest {
     }
 
     @Test
+    fun `register forwards null for unselected phone gadget`() = runTest {
+        // Given
+        val email = "test@example.com"
+        val phone: String? = null
+        val password = "password123"
+        val expectedResult = BaseResult.Success(
+            AuthModel(
+                accessToken = "token",
+                refreshToken = "refresh",
+                code = "200",
+                message = "Success",
+                usernameError = emptyList(),
+                passwordError = emptyList()
+            )
+        )
+
+        coEvery { authRepository.register(email, phone, password) } returns expectedResult
+
+        // When
+        val result = authInteractor.register(email, phone, password)
+
+        // Then
+        assertEquals(expectedResult, result)
+    }
+
+    @Test
+    fun `register forwards null for unselected email gadget`() = runTest {
+        // Given
+        val email: String? = null
+        val phone = "+1234567890"
+        val password = "password123"
+        val expectedResult = BaseResult.Success(
+            AuthModel(
+                accessToken = "token",
+                refreshToken = "refresh",
+                code = "200",
+                message = "Success",
+                usernameError = emptyList(),
+                passwordError = emptyList()
+            )
+        )
+
+        coEvery { authRepository.register(email, phone, password) } returns expectedResult
+
+        // When
+        val result = authInteractor.register(email, phone, password)
+
+        // Then
+        assertEquals(expectedResult, result)
+    }
+
+    @Test
     fun `authGoogle calls repository with correct token`() = runTest {
         // Given
         val token = "google_token"
@@ -97,9 +149,10 @@ class AuthInteractorImplTest {
     }
 
     @Test
-    fun `sendOtp calls repository with correct username`() = runTest {
+    fun `sendOtp calls repository with correct username and captcha token`() = runTest {
         // Given
         val username = "test@example.com"
+        val captchaToken = "captcha-token"
         val expectedResult = BaseResult.Success(
             BaseModel(
                 success = true,
@@ -110,10 +163,10 @@ class AuthInteractorImplTest {
             )
         )
 
-        coEvery { authRepository.sendOtp(username) } returns expectedResult
+        coEvery { authRepository.sendOtp(username, captchaToken) } returns expectedResult
 
         // When
-        val result = authInteractor.sendOtp(username)
+        val result = authInteractor.sendOtp(username, captchaToken)
 
         // Then
         assertEquals(expectedResult, result)
@@ -144,9 +197,10 @@ class AuthInteractorImplTest {
     }
 
     @Test
-    fun `passwordResetSend calls repository with correct username`() = runTest {
+    fun `passwordResetSend calls repository with correct username and captcha token`() = runTest {
         // Given
         val username = "test@example.com"
+        val captchaToken = "captcha-token"
         val expectedResult = BaseResult.Success(
             BaseModel(
                 success = true,
@@ -157,10 +211,10 @@ class AuthInteractorImplTest {
             )
         )
 
-        coEvery { authRepository.passwordResetSend(username) } returns expectedResult
+        coEvery { authRepository.passwordResetSend(username, captchaToken) } returns expectedResult
 
         // When
-        val result = authInteractor.passwordResetSend(username)
+        val result = authInteractor.passwordResetSend(username, captchaToken)
 
         // Then
         assertEquals(expectedResult, result)

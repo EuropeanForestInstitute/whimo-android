@@ -29,9 +29,9 @@ interface AuthRepository {
     suspend fun login(username: String?, password: String?): BaseResult<AuthModel>
     suspend fun register(email: String?, phone: String?, password: String?): BaseResult<AuthModel>
     suspend fun authGoogle(token: String): BaseResult<AuthModel>
-    suspend fun sendOtp(username: String?): BaseResult<BaseModel>
+    suspend fun sendOtp(username: String?, captchaToken: String?): BaseResult<BaseModel>
     suspend fun verifyOtp(username: String?, code: String?): BaseResult<BaseModel>
-    suspend fun passwordResetSend(username: String?): BaseResult<BaseModel>
+    suspend fun passwordResetSend(username: String?, captchaToken: String?): BaseResult<BaseModel>
     suspend fun passwordResetOtpCheck(username: String?, code: String?): BaseResult<BaseModel>
     suspend fun passwordResetVerify(username: String?, password: String?, code: String?): BaseResult<BaseModel>
 }

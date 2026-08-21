@@ -66,6 +66,7 @@ class UserInfoViewModel(
     private var phoneError: String = ""
 
     private var isEmailContactsRequest = false
+    private var phoneRegionSelectedManually: Boolean = false
 
     override fun createBinding(): UserInfoContract.Binding {
         return UserInfoContract.Binding()
@@ -126,11 +127,12 @@ class UserInfoViewModel(
 
             if (phoneRegion == null) phoneRegion = parsedPhone.first
             if (phoneNumber == null) phoneNumber = "${parsedPhone.second}"
+            phoneRegionSelectedManually = true
 
             updateView()
         }
 
-        if (phoneRegion == null) {
+        if (phoneRegion == null && !phoneRegionSelectedManually) {
             launch {
                 val location = getLastLocation(context)
 
@@ -140,8 +142,10 @@ class UserInfoViewModel(
                 } else {
                     PhoneNumberUtils.getCountryCodeFromLocation(context, location)
                         ?.let { countryCode ->
-                            phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
-                            updateView()
+                            if (!phoneRegionSelectedManually) {
+                                phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
+                                updateView()
+                            }
                         }
                 }
             }
@@ -164,6 +168,7 @@ class UserInfoViewModel(
 
     private fun onPhoneRegionChanged(phoneRegion: PhoneNumberUtils.PhoneRegion) {
         this.phoneRegion = phoneRegion
+        this.phoneRegionSelectedManually = true
         this.phoneError = ""
         updateView()
     }
@@ -214,6 +219,7 @@ class UserInfoViewModel(
 
                             phoneRegion = parsedPhone.first
                             phoneNumber = "${parsedPhone.second}"
+                            phoneRegionSelectedManually = true
 
                             updateView()
 

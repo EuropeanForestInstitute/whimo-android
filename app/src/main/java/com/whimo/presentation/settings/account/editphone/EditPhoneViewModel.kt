@@ -48,6 +48,7 @@ class EditPhoneViewModel(
     private var phoneNumber: String = ""
     private var phoneError: String = ""
     private var phoneRegionPolicy = RegistrationPhoneRegionPolicy.Disabled
+    private var phoneRegionSelectedManually: Boolean = false
 
     override fun createBinding(): EditPhoneContract.Binding {
         return EditPhoneContract.Binding()
@@ -91,11 +92,12 @@ class EditPhoneViewModel(
             val parsedPhone = PhoneNumberUtils.parsePhone(phone)
             this.phoneRegion = parsedPhone.first
             this.phoneNumber = "${parsedPhone.second}"
+            this.phoneRegionSelectedManually = true
         }
 
         updateView()
 
-        if (!hasInitialPhone) {
+        if (!phoneRegionSelectedManually) {
             launch {
                 val location = getLastLocation(context)
 
@@ -104,8 +106,10 @@ class EditPhoneViewModel(
 
                 } else {
                     PhoneNumberUtils.getCountryCodeFromLocation(context, location)?.let { countryCode ->
-                        phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
-                        updateView()
+                        if (!phoneRegionSelectedManually) {
+                            phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
+                            updateView()
+                        }
                     }
                 }
             }
@@ -133,6 +137,8 @@ class EditPhoneViewModel(
 
     private fun onPhoneRegionChanged(phoneRegion: PhoneNumberUtils.PhoneRegion) {
         this.phoneRegion = phoneRegion
+        this.phoneRegionSelectedManually = true
+        this.phoneError = ""
         updateView()
     }
 
@@ -164,7 +170,7 @@ class EditPhoneViewModel(
             setEffect(EditPhoneContract.Effect.ToggleLoader(true))
 
             if (oldPhone != null) {
-                interactor.deleteEmail(oldPhone)
+                interactor.deletePhone(oldPhone)
                     .onSuccess {
                         setEffect(EditPhoneContract.Effect.ToggleLoader(false))
                         addPhone(newPhone)

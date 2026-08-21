@@ -212,4 +212,34 @@ class PhoneNumberUtilsTest {
         val transformedToOriginal = result.offsetMapping.transformedToOriginal(3)
         assertTrue(transformedToOriginal >= 0)
     }
+
+    @Test
+    fun `PhoneVisualTransformation maps cursor to end after first separator`() {
+        // Given
+        val transformation = PhoneVisualTransformation()
+        val text = AnnotatedString("123456")
+
+        // When
+        val result = transformation.filter(text)
+
+        // Then
+        assertEquals("123 456", result.text.text)
+        assertEquals(7, result.offsetMapping.originalToTransformed(6))
+        assertEquals(6, result.offsetMapping.transformedToOriginal(7))
+    }
+
+    @Test
+    fun `PhoneVisualTransformation maps cursor to end after multiple separators`() {
+        // Given
+        val transformation = PhoneVisualTransformation()
+        val text = AnnotatedString("123456789")
+
+        // When
+        val result = transformation.filter(text)
+
+        // Then
+        assertEquals("123 456 789", result.text.text)
+        assertEquals(11, result.offsetMapping.originalToTransformed(9))
+        assertEquals(9, result.offsetMapping.transformedToOriginal(11))
+    }
 }

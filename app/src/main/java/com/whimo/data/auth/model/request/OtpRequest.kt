@@ -25,4 +25,5 @@ data class OtpRequest(
     val code: String? = null,
     val password: String? = null,
     val identifier: String? = null,
+    val captcha_token: String? = null,
 )

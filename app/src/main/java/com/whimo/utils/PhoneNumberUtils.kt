@@ -146,22 +146,14 @@ class PhoneVisualTransformation : VisualTransformation {
             text = AnnotatedString(formattedPhone),
             offsetMapping = object : OffsetMapping {
                 override fun originalToTransformed(offset: Int): Int {
-                    val margin = (offset - 1) / 3
-
-                    return if (margin > 0) {
-                        offset + margin
-                    } else {
-                        offset
-                    }
+                    val safeOffset = offset.coerceIn(0, text.length)
+                    val separatorsBeforeOffset = if (safeOffset == 0) 0 else (safeOffset - 1) / 3
+                    return (safeOffset + separatorsBeforeOffset).coerceAtMost(formattedPhone.length)
                 }
                 override fun transformedToOriginal(offset: Int): Int {
-                    val margin = (offset - 1) / 3
-
-                    return if (margin > 0) {
-                        offset - margin
-                    } else {
-                        offset
-                    }
+                    val safeOffset = offset.coerceIn(0, formattedPhone.length)
+                    val separatorsBeforeOffset = safeOffset / 4
+                    return (safeOffset - separatorsBeforeOffset).coerceIn(0, text.length)
                 }
             }
         )

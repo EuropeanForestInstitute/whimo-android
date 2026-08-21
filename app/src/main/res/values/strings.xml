@@ -25,6 +25,7 @@
     <string name="loading">Loading…</string>
     <string name="retry">Retry</string>
     <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
@@ -39,6 +40,10 @@
     <string name="connection_error">Server connection error please check internet connection</string>
     <string name="network_error">No internet connection</string>
     <string name="unexpected_network_error">Network error</string>
+    <string name="captcha_verification_title">Security check</string>
+    <string name="captcha_verification_description">Complete the security check to receive a verification code.</string>
+    <string name="captcha_verification_failed">Security check failed. Please try again.</string>
+    <string name="captcha_not_configured">Captcha is not configured. Please contact support.</string>
     <string name="log_in_instructions">Enter your details to log in. You can use email or phone number.</string>
     <string name="forgot_pass_instructions_email">Enter your email address and we will send you a recovery code to restore access to your account.</string>
     <string name="forgot_pass_instructions_phone">Enter your phone address and we will send you a recovery code to restore access to your account.</string>
@@ -59,7 +64,7 @@
     <string name="invalid_password">Password must have at least 8 characters, including an uppercase letter and a digit.</string>
     <string name="invalid_confirm_password">Passwords do not match</string>
     <string name="create_account">Register</string>
-    <string name="create_account_instructions">Enter email address or phone number or both to create your account</string>
+    <string name="create_account_instructions">Choose email or phone number to create your account</string>
     <string name="phone_digits">000 000 000</string>
     <string name="phone">Phone number</string>
     <string name="create_password">Create password</string>
@@ -69,6 +74,11 @@
     <string name="language">Language</string>
     <string name="login_with_email">Log in with email</string>
     <string name="login_with_phone">Log in with phone</string>
+    <string name="register_with_email">Register with email</string>
+    <string name="register_with_phone">Register with phone</string>
+    <string name="registration_success_verify_message">Account created. Please complete verification to finish setup. If needed, you can try logging in again later.</string>
+    <string name="registration_already_registered_title">Already registered</string>
+    <string name="registration_already_registered_message">This email address is already registered. Try logging in.</string>
     <string name="confirm">Confirm</string>
     <string name="did_not_receive_code">Didn\'t receive the code?</string>
     <string name="request_another">Request another</string>

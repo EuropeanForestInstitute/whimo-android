@@ -27,6 +27,7 @@ import com.whimo.R
 import com.whimo.base.CoreViewBinding
 import com.whimo.base.CoreViewEvent
 import com.whimo.base.CoreViewSideEffect
+import com.whimo.presentation.auth.registration.RegistrationAlreadyRegisteredResult
 import com.whimo.presentation.ui.models.Languages
 import com.whimo.utils.PhoneNumberUtils
 
@@ -50,6 +51,7 @@ object LoginContract {
         var loginEnabled: Boolean = false,
 
         var selectedLanguage: String = Languages.ENGLISH.languageCode,
+        var prefillGeneration: Long = 0L,
     ) : CoreViewBinding
 
     sealed class Event : CoreViewEvent {
@@ -69,6 +71,9 @@ object LoginContract {
         data class OnGoogleLongClick(val activity: Activity) : Event()
         data object OnRegisterClick : Event()
         data class OnChangeLanguage(val context: Context, val languageCode: String) : Event()
+        data class OnRegistrationAlreadyRegistered(
+            val result: RegistrationAlreadyRegisteredResult,
+        ) : Event()
 
         data class OnOtpSuccess(val username: String) : Event()
     }
@@ -85,4 +90,4 @@ object LoginContract {
         data class NavigateToEmailOtp(val email: String) : Effect()
         data class NavigateToPhoneOtp(val phone: String) : Effect()
     }
-} 
+}

@@ -43,10 +43,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -63,11 +63,15 @@ import com.whimo.R
 import com.whimo.base.ObserveEffects
 import com.whimo.extensions.findActivity
 import com.whimo.navigation.Screens
+import com.whimo.presentation.auth.registration.REGISTRATION_ALREADY_REGISTERED_RESULT_KEY
+import com.whimo.presentation.auth.registration.RegistrationAlreadyRegisteredResult
 import com.whimo.presentation.createtransaction.components.DashedDivider
 import com.whimo.presentation.main.MainActivity
 import com.whimo.presentation.main.components.TabBar
 import com.whimo.presentation.main.components.TabItem
 import com.whimo.presentation.main.components.Toolbar3
+import com.whimo.presentation.transactions.transactiondetails.components.BaseDialog
+import com.whimo.presentation.transactions.transactiondetails.components.DialogTextItem
 import com.whimo.presentation.ui.baseScreen.GoogleButton
 import com.whimo.presentation.ui.baseScreen.LoadingButton
 import com.whimo.presentation.ui.components.EmailField
@@ -79,6 +83,7 @@ import com.whimo.presentation.ui.models.Languages
 import com.whimo.presentation.ui.theme.TextStyleBodyM
 import com.whimo.presentation.ui.theme.TextStyleButtonM
 import com.whimo.presentation.ui.theme.WhimoTheme
+import com.whimo.utils.ForceUpdateController
 import com.whimo.utils.LocationPermissionRequester
 import com.whimo.utils.getResult
 import org.koin.androidx.compose.koinViewModel
@@ -108,6 +113,8 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var showLanguageBottomSheet by remember { mutableStateOf(false) }
     var showPhoneRegionDialog by remember { mutableStateOf(false) }
+    var showAlreadyRegisteredDialog by remember { mutableStateOf(false) }
+    val prefillController = remember { ForceUpdateController() }
 
     val clipboardManager = LocalClipboardManager.current
 
@@ -165,6 +172,25 @@ fun LoginScreen(
         viewModel?.setEvent(LoginContract.Event.OnOtpSuccess(confirmCodeUsername))
     }
 
+    val alreadyRegisteredResult = navController.getResult<RegistrationAlreadyRegisteredResult>(
+        REGISTRATION_ALREADY_REGISTERED_RESULT_KEY
+    )
+
+    LaunchedEffect(alreadyRegisteredResult) {
+        if (alreadyRegisteredResult != null) {
+            viewModel?.setEvent(
+                LoginContract.Event.OnRegistrationAlreadyRegistered(alreadyRegisteredResult)
+            )
+            showAlreadyRegisteredDialog = true
+        }
+    }
+
+    LaunchedEffect(binding.prefillGeneration) {
+        if (binding.prefillGeneration > 0L) {
+            prefillController.apply()
+        }
+    }
+
     Column(
         modifier = modifier
             .background(color = MaterialTheme.colorScheme.surface)
@@ -175,15 +201,20 @@ fun LoginScreen(
             description = stringResource(id = R.string.log_in_instructions),
         )
 
-        val tabs = LoginTypeTab.entries.mapIndexed { index, tab ->
-            TabItem(title = stringResource(tab.tabNameRes))
+        val loginTabs = LoginTypeTab.entries
+        val tabs = loginTabs.map { tab ->
+            TabItem(
+                title = stringResource(tab.tabNameRes),
+                onClick = {
+                    viewModel?.setEvent(LoginContract.Event.OnTabChanged(tab))
+                },
+            )
         }
-        val pagerState = rememberPagerState(initialPage = 0) { tabs.size }
-        LaunchedEffect(pagerState) {
-            snapshotFlow { pagerState.currentPage }.collect { page ->
-                val tab = LoginTypeTab.entries[page]
-                viewModel?.setEvent(LoginContract.Event.OnTabChanged(tab))
-            }
+        val selectedTab = binding.currentTab ?: LoginTypeTab.Email
+        val pagerState = key(selectedTab) {
+            rememberPagerState(
+                initialPage = loginTabs.indexOf(selectedTab)
+            ) { tabs.size }
         }
 
         TabBar(
@@ -201,9 +232,10 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            when (LoginTypeTab.entries[pagerState.currentPage]) {
+            when (selectedTab) {
                 LoginTypeTab.Email -> {
                     EmailField(
+                        controller = prefillController,
                         labelText = stringResource(id = R.string.email),
                         hintText = stringResource(id = R.string.enter_email),
                         errorText = binding.emailError,
@@ -215,6 +247,7 @@ fun LoginScreen(
                 }
                 LoginTypeTab.Phone -> {
                     PhoneNumberField(
+                        controller = prefillController,
                         labelText = stringResource(id = R.string.phone),
                         hintText = stringResource(id = R.string.phone_digits),
                         errorText = binding.phoneError,
@@ -231,6 +264,7 @@ fun LoginScreen(
             }
 
             PasswordField(
+                controller = prefillController,
                 labelText = stringResource(id = R.string.password),
                 hintText = stringResource(id = R.string.enter_password),
                 errorText = binding.passwordError,
@@ -352,6 +386,34 @@ fun LoginScreen(
                 showPhoneRegionDialog = false
                 viewModel?.setEvent(LoginContract.Event.OnPhoneRegionChanged(it))
             }
+        )
+    }
+
+    if (showAlreadyRegisteredDialog) {
+        AlreadyRegisteredDialog(
+            onDismiss = { showAlreadyRegisteredDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun AlreadyRegisteredDialog(
+    onDismiss: () -> Unit,
+) {
+    BaseDialog(
+        title = stringResource(R.string.registration_already_registered_title),
+        onDismiss = onDismiss,
+    ) {
+        DialogTextItem(
+            title = stringResource(R.string.registration_already_registered_message),
+        )
+
+        LoadingButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            title = stringResource(R.string.ok),
+            onClick = onDismiss,
         )
     }
 }

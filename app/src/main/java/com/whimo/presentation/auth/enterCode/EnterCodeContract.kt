@@ -42,9 +42,14 @@ object EnterCodeContract {
         data class OnCodeChange(val code: String) : Event()
         data object OnConfirm : Event()
         data object OnRequestAgain : Event()
+        data class OnCaptchaTokenReceived(val token: String) : Event()
+        data object OnCaptchaFailed : Event()
+        data object OnCaptchaUnavailable : Event()
+        data object OnCaptchaDismissed : Event()
     }
 
     sealed class Effect : CoreViewSideEffect {
+        data object RequestCaptcha : Effect()
         data class ToggleLoader(val isLoading: Boolean) : Effect()
         data class ShowMessage(val message: String): Effect()
         data class NavigateCreateNewPassScreen(val username: String, val code: String) : Effect()

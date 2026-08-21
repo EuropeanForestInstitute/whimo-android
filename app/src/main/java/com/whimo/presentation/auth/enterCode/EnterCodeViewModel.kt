@@ -31,6 +31,8 @@ import com.whimo.network.ErrorHandler
 import com.whimo.network.error.ServerError
 import com.whimo.providers.ResourceProvider
 
+private enum class OtpRequestAction { Registration, PasswordReset }
+
 class EnterCodeViewModel(
     private val authInteractor: AuthInteractor,
     private val errorHandler: ErrorHandler,
@@ -45,6 +47,7 @@ class EnterCodeViewModel(
     private var codeError: String = ""
 
     private var autoConfirm: Boolean = true
+    private var pendingOtpRequestAction: OtpRequestAction? = null
 
     override fun createBinding(): EnterCodeContract.Binding {
         return EnterCodeContract.Binding()
@@ -57,6 +60,10 @@ class EnterCodeViewModel(
             is EnterCodeContract.Event.OnCodeChange -> onCodeChange(event.code)
             is EnterCodeContract.Event.OnConfirm -> onConfirm()
             is EnterCodeContract.Event.OnRequestAgain -> onRequestAgain()
+            is EnterCodeContract.Event.OnCaptchaTokenReceived -> onCaptchaTokenReceived(event.token)
+            is EnterCodeContract.Event.OnCaptchaFailed -> onCaptchaFailed()
+            is EnterCodeContract.Event.OnCaptchaUnavailable -> onCaptchaUnavailable()
+            is EnterCodeContract.Event.OnCaptchaDismissed -> onCaptchaDismissed()
         }
     }
 
@@ -112,22 +119,52 @@ class EnterCodeViewModel(
     }
 
     private fun onRequestAgain() {
-        when (state) {
-            EnterCodeScreenState.Registration -> requestOtp()
-            EnterCodeScreenState.ForgotPassword -> resetPassword()
+        pendingOtpRequestAction = when (state) {
+            EnterCodeScreenState.Registration -> OtpRequestAction.Registration
+            EnterCodeScreenState.ForgotPassword -> OtpRequestAction.PasswordReset
+        }
+        setEffect(EnterCodeContract.Effect.RequestCaptcha)
+    }
+
+    private fun onCaptchaTokenReceived(captchaToken: String) {
+        val action = pendingOtpRequestAction ?: when (state) {
+            EnterCodeScreenState.Registration -> OtpRequestAction.Registration
+            EnterCodeScreenState.ForgotPassword -> OtpRequestAction.PasswordReset
+        }
+        pendingOtpRequestAction = null
+
+        if (captchaToken.isBlank()) {
+            onCaptchaFailed()
+            return
+        }
+
+        when (action) {
+            OtpRequestAction.Registration -> requestOtp(captchaToken)
+            OtpRequestAction.PasswordReset -> resetPassword(captchaToken)
         }
     }
 
-    private fun requestOtp() {
+    private fun onCaptchaFailed() {
+        pendingOtpRequestAction = null
+        setEffect(EnterCodeContract.Effect.ShowMessage(resourceProvider.getString(R.string.captcha_verification_failed)))
+    }
+
+    private fun onCaptchaUnavailable() {
+        pendingOtpRequestAction = null
+        setEffect(EnterCodeContract.Effect.ShowMessage(resourceProvider.getString(R.string.captcha_not_configured)))
+    }
+
+    private fun onCaptchaDismissed() {
+        pendingOtpRequestAction = null
+    }
+
+    private fun requestOtp(captchaToken: String) {
         setEffect(EnterCodeContract.Effect.ToggleLoader(true))
 
         launch {
-            authInteractor.sendOtp(username)
+            authInteractor.sendOtp(username, captchaToken)
                 .onSuccess {
-                    setEffect(
-                        EnterCodeContract.Effect.ToggleLoader(false),
-                        EnterCodeContract.Effect.ShowMessage("Code sent")
-                    )
+                    setEffect(EnterCodeContract.Effect.ToggleLoader(false))
                 }
                 .onError {
                     val errorMessage = errorHandler.parseError(it)
@@ -140,16 +177,13 @@ class EnterCodeViewModel(
         }
     }
 
-    private fun resetPassword() {
+    private fun resetPassword(captchaToken: String) {
         setEffect(EnterCodeContract.Effect.ToggleLoader(true))
 
         launch {
-            authInteractor.passwordResetSend(username)
+            authInteractor.passwordResetSend(username, captchaToken)
                 .onSuccess {
-                    setEffect(
-                        EnterCodeContract.Effect.ToggleLoader(false),
-                        EnterCodeContract.Effect.ShowMessage("Code sent")
-                    )
+                    setEffect(EnterCodeContract.Effect.ToggleLoader(false))
                 }
                 .onError {
                     val errorMessage = errorHandler.parseError(it)

@@ -49,12 +49,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.whimo.BuildConfig
 import com.whimo.R
 import com.whimo.base.ObserveEffects
 import com.whimo.navigation.Screens
 import com.whimo.presentation.main.components.Toolbar2
 import com.whimo.presentation.ui.baseScreen.LoadingButton
 import com.whimo.presentation.ui.components.OtpInputField
+import com.whimo.presentation.ui.components.dialogs.TurnstileCaptchaDialog
 import com.whimo.presentation.ui.theme.TextStyleBodyM
 import com.whimo.presentation.ui.theme.TextStyleButtonM
 import com.whimo.presentation.ui.theme.WhimoTheme
@@ -87,10 +89,20 @@ fun EnterCodeScreen(
     val context = LocalContext.current
 
     var isLoading by remember { mutableStateOf(false) }
+    var showCaptcha by remember { mutableStateOf(false) }
 
     if (viewModel != null) {
         ObserveEffects(viewModel) { effect ->
             when (effect) {
+                is EnterCodeContract.Effect.RequestCaptcha -> {
+                    if (BuildConfig.CAPTCHA_URL.isBlank() ||
+                        BuildConfig.CAPTCHA_URL == "DEFAULT_URL"
+                    ) {
+                        viewModel.setEvent(EnterCodeContract.Event.OnCaptchaUnavailable)
+                    } else {
+                        showCaptcha = true
+                    }
+                }
                 is EnterCodeContract.Effect.ToggleLoader -> {
                     isLoading = effect.isLoading
                 }
@@ -181,5 +193,23 @@ fun EnterCodeScreen(
                 )
             }
         }
+    }
+
+    if (showCaptcha) {
+        TurnstileCaptchaDialog(
+            captchaUrl = BuildConfig.CAPTCHA_URL,
+            onTokenReceived = { token ->
+                showCaptcha = false
+                viewModel?.setEvent(EnterCodeContract.Event.OnCaptchaTokenReceived(token))
+            },
+            onError = {
+                showCaptcha = false
+                viewModel?.setEvent(EnterCodeContract.Event.OnCaptchaFailed)
+            },
+            onDismiss = {
+                showCaptcha = false
+                viewModel?.setEvent(EnterCodeContract.Event.OnCaptchaDismissed)
+            },
+        )
     }
 }

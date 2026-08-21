@@ -37,8 +37,8 @@ class AuthInteractorImpl(
     }
 
     override suspend fun register(
-        email: String,
-        phone: String,
+        email: String?,
+        phone: String?,
         password: String
     ): BaseResult<AuthModel> {
         return authRepository.register(email = email, phone = phone, password = password)
@@ -48,16 +48,19 @@ class AuthInteractorImpl(
         return authRepository.authGoogle(token)
     }
 
-    override suspend fun sendOtp(username: String?): BaseResult<BaseModel> {
-        return authRepository.sendOtp(username)
+    override suspend fun sendOtp(username: String?, captchaToken: String?): BaseResult<BaseModel> {
+        return authRepository.sendOtp(username, captchaToken)
     }
 
     override suspend fun verifyOtp(username: String?, code: String?): BaseResult<BaseModel> {
         return authRepository.verifyOtp(username = username, code = code)
     }
 
-    override suspend fun passwordResetSend(username: String?): BaseResult<BaseModel> {
-        return authRepository.passwordResetSend(username = username)
+    override suspend fun passwordResetSend(username: String?, captchaToken: String?): BaseResult<BaseModel> {
+        return authRepository.passwordResetSend(
+            username = username,
+            captchaToken = captchaToken
+        )
     }
 
     override suspend fun passwordResetVerify(

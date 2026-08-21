@@ -23,14 +23,32 @@ package com.whimo.presentation.auth.registration
 
 import android.app.Activity
 import android.content.Context
+import com.whimo.R
 import com.whimo.base.CoreViewBinding
 import com.whimo.base.CoreViewEvent
 import com.whimo.base.CoreViewSideEffect
 import com.whimo.presentation.ui.models.Languages
 import com.whimo.utils.PhoneNumberUtils
+import java.io.Serializable
+
+const val REGISTRATION_ALREADY_REGISTERED_RESULT_KEY = "registrationAlreadyRegistered"
+
+data class RegistrationAlreadyRegisteredResult(
+    val registrationType: RegistrationTypeTab,
+    val email: String,
+    val phoneCountryCode: String,
+    val phoneNumber: String,
+    val password: String,
+) : Serializable
+
+enum class RegistrationTypeTab(val tabNameRes: Int) {
+    Email(R.string.register_with_email),
+    Phone(R.string.register_with_phone)
+}
 
 object RegistrationContract {
     data class Binding(
+        var currentTab: RegistrationTypeTab = RegistrationTypeTab.Email,
         var email: String = "",
         var phoneRegion: PhoneNumberUtils.PhoneRegion = PhoneNumberUtils.getDefaultPhoneRegion(),
         var phoneNumber: String = "",
@@ -44,13 +62,14 @@ object RegistrationContract {
 
         var termsAccepted: Boolean = false,
         var registrationEnabled: Boolean = false,
-        var emailRequired: Boolean = false,
 
-        var selectedLanguage: String = Languages.ENGLISH.languageName,
+        var selectedLanguage: String = Languages.ENGLISH.languageCode,
     ) : CoreViewBinding
 
     sealed class Event : CoreViewEvent {
         data class OnCreate(val context: Context) : Event()
+
+        data class OnTabChanged(val tab: RegistrationTypeTab) : Event()
 
         data class OnEmailChanged(val email: String) : Event()
         data class OnPhoneRegionChanged(val phoneRegion: PhoneNumberUtils.PhoneRegion) : Event()
@@ -62,8 +81,6 @@ object RegistrationContract {
         data object OnTermsClick : Event()
 
         data object OnRegisterClick : Event()
-        data object OnEmailVerificationMethodChosen : Event()
-        data object OnPhoneVerificationMethodChosen : Event()
 
         data class OnGoogleClick(val activity: Activity) : Event()
         data object OnLoginClick : Event()
@@ -80,10 +97,12 @@ object RegistrationContract {
         data object NavigateTerms : Effect()
 
         data object NavigateLogin : Effect()
+        data class NavigateLoginWithAlreadyRegisteredAlert(
+            val result: RegistrationAlreadyRegisteredResult,
+        ) : Effect()
 
         data class NavigateMainActivity(val call: Boolean?) : Effect()
 
-        data object ShowVerificationMethodBottomSheet : Effect()
         data class NavigateToEmailOtp(val email: String) : Effect()
         data class NavigateToPhoneOtp(val phone: String) : Effect()
     }

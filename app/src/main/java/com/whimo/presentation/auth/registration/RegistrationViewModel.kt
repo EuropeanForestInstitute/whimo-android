@@ -31,6 +31,7 @@ import com.whimo.data.base.common.onSuccess
 import com.whimo.domain.auth.AuthInteractor
 import com.whimo.domain.config.RegistrationPhoneRegionPolicy
 import com.whimo.network.ErrorHandler
+import com.whimo.network.error.ServerError
 import com.whimo.presentation.ui.models.Languages
 import com.whimo.providers.ResourceProvider
 import com.whimo.providers.RemoteConfigProvider
@@ -41,6 +42,8 @@ import com.whimo.utils.GoogleSignInResult
 import com.whimo.utils.PhoneNumberUtils
 import com.whimo.utils.ValidationUtils
 import com.whimo.utils.getLastLocation
+
+private const val GADGET_ALREADY_EXISTS_ERROR_CODE = "registration.gadget_already_exists"
 
 class RegistrationViewModel(
     private val authInteractor: AuthInteractor,
@@ -62,6 +65,8 @@ class RegistrationViewModel(
     private var confirmPasswordError: String = ""
     private var termsAccepted: Boolean = false
     private var phoneFocused: Boolean = false
+    private var currentTab: RegistrationTypeTab = RegistrationTypeTab.Email
+    private var phoneRegionSelectedManually: Boolean = false
     private var selectedLanguage: String = Languages.ENGLISH.languageCode
     private var phoneRegionPolicy = RegistrationPhoneRegionPolicy.Disabled
 
@@ -73,6 +78,7 @@ class RegistrationViewModel(
         super.handleEvents(event)
         when (event) {
             is RegistrationContract.Event.OnCreate -> onCreate(event.context)
+            is RegistrationContract.Event.OnTabChanged -> onTabChanged(event.tab)
             is RegistrationContract.Event.OnEmailChanged -> onEmailChanged(event.email)
             is RegistrationContract.Event.OnPhoneRegionChanged -> onPhoneRegionChanged(event.phoneRegion)
             is RegistrationContract.Event.OnPhoneChanged -> onPhoneChanged(event.phone)
@@ -82,8 +88,6 @@ class RegistrationViewModel(
             is RegistrationContract.Event.OnTermsAcceptanceChange -> onTermsAcceptanceChange(event.termsAccepted)
             is RegistrationContract.Event.OnTermsClick -> onTermsClick()
             is RegistrationContract.Event.OnRegisterClick -> onRegisterClick()
-            is RegistrationContract.Event.OnEmailVerificationMethodChosen -> onEmailVerificationMethodChosen()
-            is RegistrationContract.Event.OnPhoneVerificationMethodChosen -> onPhoneVerificationMethodChosen()
             is RegistrationContract.Event.OnGoogleClick -> onGoogleClick(event.activity)
             is RegistrationContract.Event.OnLoginClick -> onLoginClick()
             is RegistrationContract.Event.OnChangeLanguage -> onChangeLanguage(event.context, event.languageCode)
@@ -98,13 +102,11 @@ class RegistrationViewModel(
     private fun updateView() {
         val phoneRegionUnsupported = !phoneRegionPolicy.isPhoneRegionSupported(phoneRegion)
         val showPhoneRegionUnsupportedError = phoneRegionUnsupported &&
-                (phoneFocused || (phoneNumber.isNotEmpty() && email.isBlank()))
-        val emailRequiredByPhonePolicy = phoneRegionPolicy.requiresEmailForRegistration(
-            phoneRegion = phoneRegion,
-            email = email,
-        )
+                currentTab == RegistrationTypeTab.Phone &&
+                (phoneFocused || phoneNumber.isNotEmpty())
 
         updateBinding { b ->
+            b.currentTab = currentTab
             b.email = email
             b.phoneNumber = phoneNumber
             b.phoneRegion = phoneRegion
@@ -119,12 +121,17 @@ class RegistrationViewModel(
             b.passwordError = passwordError
             b.confirmPasswordError = confirmPasswordError
             b.termsAccepted = termsAccepted
-            b.registrationEnabled = (email.isNotEmpty() || phoneNumber.isNotEmpty()) &&
-                    password.isNotEmpty() &&
-                    confirmPassword.isNotEmpty() &&
-                    termsAccepted &&
-                    !emailRequiredByPhonePolicy
-            b.emailRequired = phoneRegionUnsupported
+            b.registrationEnabled = when (currentTab) {
+                RegistrationTypeTab.Email -> email.isNotEmpty() &&
+                        password.isNotEmpty() &&
+                        confirmPassword.isNotEmpty() &&
+                        termsAccepted
+                RegistrationTypeTab.Phone -> phoneNumber.isNotEmpty() &&
+                        password.isNotEmpty() &&
+                        confirmPassword.isNotEmpty() &&
+                        termsAccepted &&
+                        !phoneRegionUnsupported
+            }
             b.selectedLanguage = selectedLanguage
         }
     }
@@ -132,6 +139,11 @@ class RegistrationViewModel(
     private fun onCreate(context: Context) {
         selectedLanguage = appLocaleManager.getLanguageCode(context)
         refreshPhoneRegionPolicy()
+        updateView()
+
+        if (phoneRegionSelectedManually) {
+            return
+        }
 
         launch {
             val location = getLastLocation(context)
@@ -141,8 +153,10 @@ class RegistrationViewModel(
 
             } else {
                 PhoneNumberUtils.getCountryCodeFromLocation(context, location)?.let { countryCode ->
-                    phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
-                    updateView()
+                    if (!phoneRegionSelectedManually) {
+                        phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
+                        updateView()
+                    }
                 }
             }
         }
@@ -157,6 +171,11 @@ class RegistrationViewModel(
             phoneRegionPolicy = remoteConfigProvider.getRegistrationPhoneRegionPolicy()
             updateView()
         }
+    }
+
+    private fun onTabChanged(tab: RegistrationTypeTab) {
+        currentTab = tab
+        updateView()
     }
 
     private fun onEmailChanged(email: String) {
@@ -178,6 +197,8 @@ class RegistrationViewModel(
 
     private fun onPhoneRegionChanged(phoneRegion: PhoneNumberUtils.PhoneRegion) {
         this.phoneRegion = phoneRegion
+        this.phoneRegionSelectedManually = true
+        this.phoneError = ""
         updateView()
     }
 
@@ -204,13 +225,24 @@ class RegistrationViewModel(
     }
 
     private fun onRegisterClick() {
-        if (phoneRegionPolicy.requiresEmailForRegistration(phoneRegion, email)) {
+        if (currentTab == RegistrationTypeTab.Phone &&
+            !phoneRegionPolicy.isPhoneRegionSupported(phoneRegion)
+        ) {
+            phoneError = resourceProvider.getString(R.string.phone_verification_unavailable_registration)
             updateView()
             return
         }
 
-        val emailValidationStatus = ValidationUtils.validateEmail(email)
-        val phoneValidationStatus = ValidationUtils.validatePhoneNumber(phoneRegion.phoneCode, phoneNumber)
+        val emailValidationStatus = if (currentTab == RegistrationTypeTab.Email) {
+            ValidationUtils.validateEmail(email)
+        } else {
+            ValidationUtils.ValidationState.Empty
+        }
+        val phoneValidationStatus = if (currentTab == RegistrationTypeTab.Phone) {
+            ValidationUtils.validatePhoneNumber(phoneRegion.phoneCode, phoneNumber)
+        } else {
+            ValidationUtils.ValidationState.Empty
+        }
         val passwordValidationStatus = ValidationUtils.validatePassword(password)
         val confirmPasswordValidationStatus = ValidationUtils.validateConfirmPassword(password, confirmPassword)
 
@@ -238,46 +270,68 @@ class RegistrationViewModel(
             ValidationUtils.ValidationState.Valid -> ""
         }
 
-        if ((emailValidationStatus == ValidationUtils.ValidationState.Valid || phoneValidationStatus == ValidationUtils.ValidationState.Valid) &&
+        val selectedEmail = email.takeIf {
+            currentTab == RegistrationTypeTab.Email &&
+                    emailValidationStatus == ValidationUtils.ValidationState.Valid
+        }
+        val selectedPhone = if (currentTab == RegistrationTypeTab.Phone &&
+            phoneValidationStatus == ValidationUtils.ValidationState.Valid
+        ) {
+            "+${phoneRegion.phoneCode}$phoneNumber"
+        } else {
+            null
+        }
+
+        if ((selectedEmail != null || selectedPhone != null) &&
             passwordValidationStatus == ValidationUtils.ValidationState.Valid &&
             confirmPasswordValidationStatus == ValidationUtils.ValidationState.Valid &&
             termsAccepted) {
 
-            val phone = if (phoneNumber.isNotEmpty()) {
-                "+${phoneRegion.phoneCode}$phoneNumber"
-            } else {
-                ""
-            }
-
-            register(email, phone, password)
+            register(selectedEmail, selectedPhone, password)
 
         } else {
             updateView()
         }
     }
 
-    private fun register(email: String, phone: String, password: String) {
+    private fun register(email: String?, phone: String?, password: String) {
         launch {
             setEffect(RegistrationContract.Effect.ToggleLoader(true))
 
             authInteractor.register(email, phone, password)
                 .onSuccess {
-                    setEffect(RegistrationContract.Effect.ToggleLoader(false))
+                    val navigateEffect = when {
+                        email != null -> RegistrationContract.Effect.NavigateToEmailOtp(email)
+                        phone != null -> RegistrationContract.Effect.NavigateToPhoneOtp(phone)
+                        else -> null
+                    }
 
-                    val phoneVerificationAvailable = phone.isNotEmpty() &&
-                            phoneRegionPolicy.isPhoneRegionSupported(phoneRegion)
-
-                    if (email.isNotEmpty() && phoneVerificationAvailable) {
-                        setEffect(RegistrationContract.Effect.ShowVerificationMethodBottomSheet)
-
-                    } else if (email.isNotEmpty()) {
-                        setEffect(RegistrationContract.Effect.NavigateToEmailOtp(email))
-
-                    } else if (phoneVerificationAvailable) {
-                        setEffect(RegistrationContract.Effect.NavigateToPhoneOtp(phone))
+                    if (navigateEffect != null) {
+                        setEffect(
+                            RegistrationContract.Effect.ToggleLoader(false),
+                            navigateEffect,
+                        )
+                    } else {
+                        setEffect(RegistrationContract.Effect.ToggleLoader(false))
                     }
                 }
                 .onError {
+                    if (it.isGadgetAlreadyExistsError()) {
+                        setEffect(
+                            RegistrationContract.Effect.ToggleLoader(false),
+                            RegistrationContract.Effect.NavigateLoginWithAlreadyRegisteredAlert(
+                                result = RegistrationAlreadyRegisteredResult(
+                                    registrationType = currentTab,
+                                    email = email.orEmpty(),
+                                    phoneCountryCode = phoneRegion.code,
+                                    phoneNumber = phoneNumber,
+                                    password = password,
+                                )
+                            ),
+                        )
+                        return@onError
+                    }
+
                     val errorMessage = errorHandler.parseError(it)
 
                     setEffect(
@@ -288,22 +342,13 @@ class RegistrationViewModel(
         }
     }
 
-    private fun onEmailVerificationMethodChosen() {
-        setEffect(RegistrationContract.Effect.NavigateToEmailOtp(email))
-    }
-
-    private fun onPhoneVerificationMethodChosen() {
-        if (!phoneRegionPolicy.isPhoneRegionSupported(phoneRegion)) {
-            setEffect(
-                RegistrationContract.Effect.ShowMessage(
-                    resourceProvider.getString(R.string.phone_verification_unavailable_settings)
-                )
-            )
-            return
+    private fun Throwable.isGadgetAlreadyExistsError(): Boolean {
+        if (this !is ServerError) {
+            return false
         }
 
-        val phone = "+${phoneRegion.phoneCode}$phoneNumber"
-        setEffect(RegistrationContract.Effect.NavigateToPhoneOtp(phone))
+        return baseResponse?.code == GADGET_ALREADY_EXISTS_ERROR_CODE ||
+                baseResponse?.message == GADGET_ALREADY_EXISTS_ERROR_CODE
     }
 
     private fun onLoginClick() {

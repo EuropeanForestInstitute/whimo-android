@@ -31,6 +31,8 @@ import com.whimo.data.base.common.onSuccess
 import com.whimo.domain.auth.AuthInteractor
 import com.whimo.network.ErrorHandler
 import com.whimo.network.error.ServerError
+import com.whimo.presentation.auth.registration.RegistrationAlreadyRegisteredResult
+import com.whimo.presentation.auth.registration.RegistrationTypeTab
 import com.whimo.presentation.ui.models.Languages
 import com.whimo.providers.ResourceProvider
 import com.whimo.providers.SharedPreferencesProvider
@@ -58,6 +60,8 @@ class LoginViewModel(
     private var phoneError: String = ""
     private var passwordError: String = ""
     private var selectedLanguage: String = Languages.ENGLISH.languageCode
+    private var phoneRegionSelectedManually: Boolean = false
+    private var prefillGeneration: Long = 0L
 
     override fun createBinding(): LoginContract.Binding {
         return LoginContract.Binding()
@@ -78,6 +82,7 @@ class LoginViewModel(
             is LoginContract.Event.OnGoogleLongClick -> onGoogleLongClick(event.activity)
             is LoginContract.Event.OnRegisterClick -> onRegisterClick()
             is LoginContract.Event.OnChangeLanguage -> onChangeLanguage(event.context, event.languageCode)
+            is LoginContract.Event.OnRegistrationAlreadyRegistered -> onRegistrationAlreadyRegistered(event.result)
             is LoginContract.Event.OnOtpSuccess -> onOtpSuccess(event.username)
         }
     }
@@ -105,11 +110,17 @@ class LoginViewModel(
                 }
             }
             b.selectedLanguage = selectedLanguage
+            b.prefillGeneration = prefillGeneration
         }
     }
 
     private fun onCreate(context: Context) {
         selectedLanguage = appLocaleManager.getLanguageCode(context)
+        updateView()
+
+        if (phoneRegionSelectedManually) {
+            return
+        }
 
         launch {
             val location = getLastLocation(context)
@@ -119,8 +130,10 @@ class LoginViewModel(
 
             } else {
                 PhoneNumberUtils.getCountryCodeFromLocation(context, location)?.let { countryCode ->
-                    phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
-                    updateView()
+                    if (!phoneRegionSelectedManually) {
+                        phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
+                        updateView()
+                    }
                 }
             }
         }
@@ -145,6 +158,7 @@ class LoginViewModel(
 
     private fun onPhoneRegionChanged(phoneRegion: PhoneNumberUtils.PhoneRegion) {
         this.phoneRegion = phoneRegion
+        this.phoneRegionSelectedManually = true
         updateView()
     }
 
@@ -263,6 +277,31 @@ class LoginViewModel(
     private fun onChangeLanguage(context: Context, languageCode: String) {
         appLocaleManager.changeLanguage(context, languageCode)
         selectedLanguage = languageCode
+    }
+
+    private fun onRegistrationAlreadyRegistered(result: RegistrationAlreadyRegisteredResult) {
+        emailError = ""
+        phoneError = ""
+        passwordError = ""
+        password = result.password
+
+        when (result.registrationType) {
+            RegistrationTypeTab.Email -> {
+                currentTab = LoginTypeTab.Email
+                email = result.email
+                phoneNumber = ""
+            }
+            RegistrationTypeTab.Phone -> {
+                currentTab = LoginTypeTab.Phone
+                email = ""
+                phoneRegion = PhoneNumberUtils.getPhoneRegion(result.phoneCountryCode)
+                phoneNumber = result.phoneNumber
+                phoneRegionSelectedManually = true
+            }
+        }
+
+        prefillGeneration += 1
+        updateView()
     }
 
     private fun onOtpSuccess(username: String) {

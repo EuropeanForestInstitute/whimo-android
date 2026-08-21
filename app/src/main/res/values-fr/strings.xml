@@ -25,6 +25,7 @@
     <string name="loading">Chargement…</string>
     <string name="retry">Réessayer</string>
     <string name="cancel">Annuler</string>
+    <string name="ok">OK</string>
     <string name="save">Enregistrer</string>
     <string name="delete">Supprimer</string>
     <string name="edit">Modifier</string>
@@ -39,6 +40,10 @@
     <string name="connection_error">Erreur de connexion au serveur, veuillez vérifier votre connexion internet</string>
     <string name="network_error">Pas de connexion internet</string>
     <string name="unexpected_network_error">Erreur réseau</string>
+    <string name="captcha_verification_title">Vérification de sécurité</string>
+    <string name="captcha_verification_description">Effectuez la vérification de sécurité pour recevoir un code de vérification.</string>
+    <string name="captcha_verification_failed">La vérification de sécurité a échoué. Veuillez réessayer.</string>
+    <string name="captcha_not_configured">Le captcha n’est pas configuré. Veuillez contacter l’assistance.</string>
     <string name="log_in_instructions">Entrez vos informations pour vous connecter. Vous pouvez utiliser l\'email ou le numéro de téléphone.</string>
     <string name="forgot_pass_instructions_email">Entrez votre email et nous vous enverrons un code de récupération pour restaurer l\'accès à votre compte.</string>
     <string name="forgot_pass_instructions_phone">Entrez votre numéro de téléphone et nous vous enverrons un code de récupération pour restaurer l\'accès à votre compte.</string>
@@ -59,7 +64,7 @@
     <string name="invalid_password">Le mot de passe doit contenir au moins 8 caractères, dont une majuscule et un chiffre.</string>
     <string name="invalid_confirm_password">Les mots de passe ne correspondent pas</string>
     <string name="create_account">Créer un compte</string>
-    <string name="create_account_instructions">Entrez un email ou un numéro de téléphone, ou les deux, pour créer votre compte</string>
+    <string name="create_account_instructions">Choisissez un email ou un numéro de téléphone pour créer votre compte</string>
     <string name="phone_digits">000 000 000</string>
     <string name="phone">Numéro de téléphone</string>
     <string name="create_password">Créer un mot de passe</string>
@@ -69,6 +74,11 @@
     <string name="language">Langue</string>
     <string name="login_with_email">Connexion avec email</string>
     <string name="login_with_phone">Connexion avec téléphone</string>
+    <string name="register_with_email">Inscription avec email</string>
+    <string name="register_with_phone">Inscription avec téléphone</string>
+    <string name="registration_success_verify_message">Compte créé. Terminez la vérification pour finaliser la configuration. Si besoin, vous pourrez réessayer de vous connecter plus tard.</string>
+    <string name="registration_already_registered_title">Déjà inscrit</string>
+    <string name="registration_already_registered_message">Cette adresse e-mail est déjà enregistrée. Essayez de vous connecter.</string>
     <string name="confirm">Confirmer</string>
     <string name="did_not_receive_code">Vous n\'avez pas reçu le code ?</string>
     <string name="request_another">Demander un autre</string>

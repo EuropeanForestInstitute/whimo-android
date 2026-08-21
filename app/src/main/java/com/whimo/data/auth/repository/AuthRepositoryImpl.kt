@@ -72,9 +72,9 @@ class AuthRepositoryImpl(
         }.mapResult { it?.toDomain() }
     }
 
-    override suspend fun sendOtp(username: String?): BaseResult<BaseModel> {
+    override suspend fun sendOtp(username: String?, captchaToken: String?): BaseResult<BaseModel> {
         return handleResponse {
-            otpService.sendOtp(OtpRequest(identifier = username))
+            otpService.sendOtp(OtpRequest(identifier = username, captcha_token = captchaToken))
         }.mapResult { it?.toDomain() }
     }
 
@@ -84,9 +84,9 @@ class AuthRepositoryImpl(
         }.mapResult { it?.toDomain() }
     }
 
-    override suspend fun passwordResetSend(username: String?): BaseResult<BaseModel> {
+    override suspend fun passwordResetSend(username: String?, captchaToken: String?): BaseResult<BaseModel> {
         return handleResponse {
-            authService.passwordResetSend(OtpRequest(identifier = username))
+            authService.passwordResetSend(OtpRequest(identifier = username, captcha_token = captchaToken))
         }.mapResult { it?.toDomain() }
     }
 

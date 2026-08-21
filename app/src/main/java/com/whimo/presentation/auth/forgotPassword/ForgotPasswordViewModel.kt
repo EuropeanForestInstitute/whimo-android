@@ -46,6 +46,7 @@ class ForgotPasswordViewModel(
     private var emailError: String = ""
     private var phoneError: String = ""
     private var passwordError: String = ""
+    private var phoneRegionSelectedManually: Boolean = false
 
     override fun createBinding(): ForgotPasswordContract.Binding {
         return ForgotPasswordContract.Binding()
@@ -99,6 +100,7 @@ class ForgotPasswordViewModel(
             val parsedPhone = PhoneNumberUtils.parsePhone(phone)
             this.phoneRegion = parsedPhone.first
             this.phoneNumber = "${parsedPhone.second}"
+            this.phoneRegionSelectedManually = true
         }
 
         if (email != null) {
@@ -106,6 +108,10 @@ class ForgotPasswordViewModel(
         }
 
         updateView()
+
+        if (phoneRegionSelectedManually) {
+            return
+        }
 
         launch {
             val location = getLastLocation(context)
@@ -115,8 +121,10 @@ class ForgotPasswordViewModel(
 
             } else {
                 PhoneNumberUtils.getCountryCodeFromLocation(context, location)?.let { countryCode ->
-                    phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
-                    updateView()
+                    if (!phoneRegionSelectedManually) {
+                        phoneRegion = PhoneNumberUtils.getPhoneRegion(countryCode)
+                        updateView()
+                    }
                 }
             }
         }
@@ -136,6 +144,7 @@ class ForgotPasswordViewModel(
 
     private fun onPhoneRegionChanged(phoneRegion: PhoneNumberUtils.PhoneRegion) {
         this.phoneRegion = phoneRegion
+        this.phoneRegionSelectedManually = true
         updateView()
     }
 
