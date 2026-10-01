@@ -26,6 +26,9 @@
     <string name="retry">Retry</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
+    <string name="apply">Apply</string>
+    <string name="reset">Reset</string>
+    <string name="filter">Filter</string>
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
@@ -180,6 +183,7 @@
 
     <!-- Additional UI Strings -->
     <string name="search_transaction">Search transaction</string>
+    <string name="search_balance">Search balance</string>
     <string name="search_icon">Search Icon</string>
     <string name="filter_icon">Filter Icon</string>
     <string name="bought">Bought</string>
@@ -228,10 +232,26 @@
     <!-- Transaction Details Strings -->
     <string name="transaction_details">Transaction details</string>
     <string name="commodity_type">Commodity type</string>
+    <string name="all_commodity_groups">All commodity groups</string>
+    <string name="harvest_season">Harvest season</string>
+    <string name="all_harvest_seasons">All harvest seasons</string>
+    <string name="active">Active</string>
+    <string name="past">Past</string>
+    <string name="archived">Archived</string>
+    <string name="active_season">Active season %s</string>
+    <string name="past_season">Past season %s</string>
+    <string name="archived_season">Archived season %s</string>
+    <string name="harvest_season_description">Harvest seasons help organize transactions by crop harvest.</string>
+    <string name="harvest_season_assignment_description">The season is assigned when the first transaction is created and is automatically used throughout the rest of the supply chain.</string>
+    <string name="harvest_season_period">%1$s: %2$s - %3$s</string>
+    <string name="harvest_season_period_no_country">%1$s - %2$s</string>
     <string name="farm_geodata_missing">Data is missing</string>
     <string name="traders">traders</string>
     <string name="buyer_information">Buyer information</string>
+    <string name="buyer_id">Buyer ID</string>
     <string name="supplier_information">Supplier information</string>
+    <string name="seller_id">Seller ID</string>
+    <string name="transaction_status">Transaction status</string>
     <string name="transaction_date">Transaction date</string>
     <string name="expiry_date">Expiry date</string>
     <string name="my_supplier_history">My supplier\'s history</string>
@@ -240,6 +260,20 @@
     <string name="resend_notification">Resend notification</string>
     <string name="reject_transaction">Reject transaction</string>
     <string name="accept_transaction">Accept transaction</string>
+    <string name="sales_transaction">Sales transaction</string>
+    <string name="got_it">Got It</string>
+    <string name="test_environment">Test Environment</string>
+    <string name="test_environment_description">Practice creating transactions in a separate environment without affecting your live data.</string>
+    <string name="test_environment_banner">You are in the Test Environment</string>
+    <string name="test_environment_settings_unavailable">Some settings are unavailable in the Test Environment.</string>
+    <string name="entering_test_environment_title">Entering test environment</string>
+    <string name="entering_test_environment_notice">Everything works just like the live application, but nothing here affects your real data.</string>
+    <string name="entering_test_environment_description">- Create and receive test transactions.\n- Explore traceability and balances.\n- Learn how the app works before using it in real trading.\n- All test data is kept separate from your live workspace.\n- Switch back to the Live Environment at any time from Settings.</string>
+    <string name="test_environment_unsynced_changes_title">You have unsynced changes</string>
+    <string name="test_environment_unsynced_changes_description">Unsynced transactions must be synchronized before entering the Test Environment.\n\nReconnect to the internet and sync your data. Once synchronization is complete, you\'ll be able to switch to the Test Environment.</string>
+    <string name="test_environment_transaction_notice">Please note that you are creating a transaction in a test environment and it will not affect traceability.</string>
+    <string name="not_enough_available_balance">Not enough available balance.</string>
+    <string name="accept_transaction_insufficient_balance_dialog">You have %1$s available from the %2$s Harvest Season, but the buyer requested %3$s.\n\nYou can\'t accept this transaction until you have enough balance available.\n\nAlternatively, reject this request and create a new sale for the available amount.</string>
     <string name="no_history">No history</string>
     <string name="download_locations">Download locations</string>
     <string name="request_missing_locations">Request missing locations</string>
@@ -266,10 +300,26 @@
     <string name="counterparty_info_instruction">Please enter accurate counterparty information so we can invite them to WHIMO.</string>
     <string name="balances">Balances</string>
     <string name="your_balance">Your balance: %s</string>
+    <string name="balance_details">Balance details</string>
+    <string name="source_transactions">Source transactions</string>
+    <string name="last_activity">Last activity</string>
+    <string name="no_source_transactions">No source transactions</string>
+    <string name="you_are_working_offline_now">You are working offline now.</string>
+    <string name="harvest_season_format">Harvest season %s</string>
+    <string name="select_harvest_season">Select harvest season</string>
+    <string name="select">Select</string>
+    <string name="select_commodity_type_to_buy">Please select Commodity type you want to buy.</string>
+    <string name="select_commodity_type_to_sell">Please select Commodity type you want to sell.</string>
+    <string name="insufficient_season_balance_message">Not enough available balance for the %s harvest season.</string>
+    <string name="automatic_transaction_balance_message">Not enough available balance.\n\nAn automatic transaction will be created for the missing %s. This amount will have incomplete traceability.</string>
+    <string name="commodity_volume_with_season">%1$s %2$s</string>
+    <string name="sale_volume_summary_with_auto">Your sale will include:\n%1$s from season %2$s\n%3$s auto transaction</string>
+    <string name="sale_volume_breakdown_title">Your sale will include:</string>
+    <string name="sale_volume_breakdown_from_season">from season %s</string>
+    <string name="sale_volume_breakdown_auto_transaction">auto transaction</string>
     <string name="upload_file_description2">If you are buying from a farmer and want more options for adding data, please go back and select the option you need when creating the transaction.</string>
     <string name="from_initial_seller">from initial seller</string>
-    <string name="from_trader">from Trader #%s</string>
-    <string name="from_a_cooperative">from a cooperative or unknown trader</string>
+    <string name="from_trader">from Trader #%s</string>    <string name="from_a_cooperative">from a cooperative or unknown trader</string>
     <string name="traceability_status">Traceability status</string>
     <string name="traceability_status_description">The pie chart can give you an idea of the traceability performance (by showing the proportion of their suppliers that fall into each traceability status).</string>
     <string name="full_traceability_status_description">Geolocation was provided by scanning farmer card or capturing the GPS of the farm (or if farmer uses app to validate the transaction).</string>
@@ -305,6 +355,8 @@
 
     <string name="download">Download</string>
     <string name="offline_transaction">Offline transaction</string>
+    <string name="offline_transactions_sync_title">Syncing offline transactions</string>
+    <string name="offline_transactions_sync_progress">Processed %1$d of %2$d offline transactions</string>
     <string name="download_farms_locations">Download farms locations</string>
     <string name="download_farms_locations_description">You will be downloading farm geolocation data, including:\n• Merged GeoJSON files\n• Custom location files</string>
     <string name="download_transaction_details_q">Download transaction details?</string>

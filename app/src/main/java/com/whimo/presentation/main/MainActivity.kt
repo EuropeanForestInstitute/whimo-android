@@ -39,6 +39,7 @@ import com.whimo.navigation.bottombar.BottomNavigationBar
 import com.whimo.navigation.navgraphs.MainNavGraph
 import com.whimo.network.authenticator.SessionManager
 import com.whimo.presentation.auth.AuthActivity
+import com.whimo.presentation.ui.components.TestEnvironmentFrame
 import com.whimo.presentation.ui.theme.WhimoTheme
 import com.whimo.utils.PostNotificationPermissionRequester
 import org.koin.android.ext.android.inject
@@ -71,11 +72,13 @@ class MainActivity : ComponentActivity(), OnBackPressedDispatcherOwner {
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.surfaceVariant,
                     ) {
-                        MainNavGraph(
-                            modifier = Modifier,
-                            navController = navController,
-                            haveUnreadNotifications = binding.haveUnreadNotifications,
-                        )
+                        TestEnvironmentFrame(modifier = Modifier.fillMaxSize()) {
+                            MainNavGraph(
+                                modifier = Modifier,
+                                navController = navController,
+                                haveUnreadNotifications = binding.haveUnreadNotifications,
+                            )
+                        }
                     }
                 }
             }

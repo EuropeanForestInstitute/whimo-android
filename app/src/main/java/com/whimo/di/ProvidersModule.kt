@@ -29,6 +29,7 @@ import com.whimo.providers.FirebaseRemoteConfigProvider
 import com.whimo.providers.RemoteConfigProvider
 import com.whimo.providers.SharedPreferencesProvider
 import com.whimo.providers.SharedPreferencesProviderImpl
+import com.whimo.providers.TestEnvironmentManager
 import com.whimo.utils.AppLocaleManager
 import com.whimo.utils.AppLocaleManagerImpl
 import org.koin.android.ext.koin.androidContext
@@ -41,6 +42,7 @@ val providersModule = module {
         FirebaseRemoteConfigProvider(remoteConfig = get(), gson = get(), resourceProvider = get())
     }
     factory<SharedPreferencesProvider> { SharedPreferencesProviderImpl(androidContext()) }
+    single { TestEnvironmentManager(get()) }
     factory<ResourceProvider> { ResourceProviderImpl(androidContext()) }
     factory<AppLocaleManager> { AppLocaleManagerImpl() }
 }

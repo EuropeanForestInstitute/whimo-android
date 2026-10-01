@@ -23,6 +23,7 @@ package com.whimo.extensions
 
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -43,6 +44,10 @@ fun String.toLocalDateTime(): LocalDateTime {
 //}
 
 fun LocalDateTime.toShortFormattedDateString(): String {
+    return format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))
+}
+
+fun LocalDate.toShortFormattedDateString(): String {
     return format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))
 }
 

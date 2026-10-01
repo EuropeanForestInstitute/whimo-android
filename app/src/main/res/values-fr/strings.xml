@@ -26,6 +26,9 @@
     <string name="retry">Réessayer</string>
     <string name="cancel">Annuler</string>
     <string name="ok">OK</string>
+    <string name="apply">Appliquer</string>
+    <string name="reset">Réinitialiser</string>
+    <string name="filter">Filtre</string>
     <string name="save">Enregistrer</string>
     <string name="delete">Supprimer</string>
     <string name="edit">Modifier</string>
@@ -179,6 +182,7 @@
 
     <!-- Additional UI Strings -->
     <string name="search_transaction">Rechercher une transaction</string>
+    <string name="search_balance">Rechercher un solde</string>
     <string name="search_icon">Icône de recherche</string>
     <string name="filter_icon">Icône de filtre</string>
     <string name="bought">Achats</string>
@@ -227,10 +231,26 @@
     <!-- Transaction Details Strings -->
     <string name="transaction_details">Détails de la transaction</string>
     <string name="commodity_type">Type de marchandise</string>
+    <string name="all_commodity_groups">Tous les groupes de produits</string>
+    <string name="harvest_season">Saison de récolte</string>
+    <string name="all_harvest_seasons">Toutes les saisons de récolte</string>
+    <string name="active">Active</string>
+    <string name="past">Passée</string>
+    <string name="archived">Archivée</string>
+    <string name="active_season">Saison active %s</string>
+    <string name="past_season">Saison passée %s</string>
+    <string name="archived_season">Saison archivée %s</string>
+    <string name="harvest_season_description">Les saisons de récolte aident à organiser les transactions par récolte.</string>
+    <string name="harvest_season_assignment_description">La saison est attribuée lors de la création de la première transaction et est automatiquement utilisée dans le reste de la chaîne d’approvisionnement.</string>
+    <string name="harvest_season_period">%1$s : %2$s - %3$s</string>
+    <string name="harvest_season_period_no_country">%1$s - %2$s</string>
     <string name="farm_geodata_missing">Données manquantes</string>
     <string name="traders">commerçants</string>
     <string name="buyer_information">Informations sur l\'acheteur</string>
+    <string name="buyer_id">ID acheteur</string>
     <string name="supplier_information">Informations sur le fournisseur</string>
+    <string name="seller_id">ID vendeur</string>
+    <string name="transaction_status">Statut de la transaction</string>
     <string name="transaction_date">Date de transaction</string>
     <string name="expiry_date">Date d\'expiration</string>
     <string name="my_supplier_history">Historique de mon fournisseur</string>
@@ -239,6 +259,10 @@
     <string name="resend_notification">Renvoyer la notification</string>
     <string name="reject_transaction">Rejeter la transaction</string>
     <string name="accept_transaction">Accepter la transaction</string>
+    <string name="sales_transaction">Transaction de vente</string>
+    <string name="got_it">Compris</string>
+    <string name="not_enough_available_balance">Solde disponible insuffisant.</string>
+    <string name="accept_transaction_insufficient_balance_dialog">Vous avez %1$s disponibles pour la saison de récolte %2$s, mais l\'acheteur a demandé %3$s.\n\nVous ne pouvez pas accepter cette transaction tant que votre solde disponible est insuffisant.\n\nVous pouvez aussi rejeter cette demande et créer une nouvelle vente pour le montant disponible.</string>
     <string name="no_history">Aucun historique</string>
     <string name="download_locations">Télécharger les emplacements</string>
     <string name="request_missing_locations">Demander les emplacements manquants</string>
@@ -279,10 +303,26 @@
     <string name="counterparty_info_instruction">Veuillez saisir des informations précises sur la contrepartie afin que nous puissions l\'inviter sur WHIMO.</string>
     <string name="balances">Soldes</string>
     <string name="your_balance">Votre solde : %s</string>
+    <string name="balance_details">Détails du solde</string>
+    <string name="source_transactions">Transactions sources</string>
+    <string name="last_activity">Dernière activité</string>
+    <string name="no_source_transactions">Aucune transaction source</string>
+    <string name="you_are_working_offline_now">Vous travaillez actuellement hors ligne.</string>
+    <string name="harvest_season_format">Saison de récolte %s</string>
+    <string name="select_harvest_season">Sélectionner la saison de récolte</string>
+    <string name="select">Sélectionner</string>
+    <string name="select_commodity_type_to_buy">Veuillez sélectionner le type de marchandise que vous voulez acheter.</string>
+    <string name="select_commodity_type_to_sell">Veuillez sélectionner le type de marchandise que vous voulez vendre.</string>
+    <string name="insufficient_season_balance_message">Solde disponible insuffisant pour la saison de récolte %s.</string>
+    <string name="automatic_transaction_balance_message">Solde disponible insuffisant.\n\nUne transaction automatique sera créée pour couvrir les %s manquants. Ce volume aura une traçabilité incomplète.</string>
+    <string name="commodity_volume_with_season">%1$s %2$s</string>
+    <string name="sale_volume_summary_with_auto">Votre vente comprendra :\n%1$s de la saison %2$s\n%3$s transaction automatique</string>
+    <string name="sale_volume_breakdown_title">Votre vente comprendra :</string>
+    <string name="sale_volume_breakdown_from_season">de la saison %s</string>
+    <string name="sale_volume_breakdown_auto_transaction">transaction automatique</string>
     <string name="upload_file_description2">Si vous achetez auprès d’un producteur et souhaitez plus d’options pour ajouter des données, veuillez revenir en arrière et sélectionner l’option nécessaire lors de la création de la transaction.</string>
     <string name="from_initial_seller">du vendeur initial</string>
-    <string name="from_trader">du commerçant n°%s</string>
-    <string name="from_a_cooperative">d’une coopérative ou d’un commerçant inconnu</string>
+    <string name="from_trader">du commerçant n°%s</string>    <string name="from_a_cooperative">d’une coopérative ou d’un commerçant inconnu</string>
     <string name="traceability_status">Statut de traçabilité</string>
     <string name="traceability_status_description">Le graphique en secteurs peut vous donner une idée des performances de traçabilité (en montrant la proportion de leurs fournisseurs dans chaque statut).</string>
     <string name="full_traceability_status_description">La géolocalisation a été fournie en scannant la carte de l’producteur ou en capturant le GPS de la parcelle (ou si l’producteur utilise l’application pour valider la transaction).</string>
@@ -305,6 +345,8 @@
 
     <string name="download">Télécharger</string>
     <string name="offline_transaction">Transaction hors ligne</string>
+    <string name="offline_transactions_sync_title">Synchronisation des transactions hors ligne</string>
+    <string name="offline_transactions_sync_progress">%1$d transaction(s) hors ligne traitée(s) sur %2$d</string>
     <string name="download_farms_locations">Télécharger les emplacements des fermes</string>
     <string name="download_farms_locations_description">Vous allez télécharger les données de géolocalisation des fermes, y compris :\n• Fichiers GeoJSON fusionnés\n• Fichiers d’emplacements personnalisés</string>
     <string name="download_transaction_details_q">Télécharger les détails de la transaction?</string>

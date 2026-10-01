@@ -22,6 +22,7 @@
 package com.whimo.data.commodity.model.response
 
 import com.whimo.data.base.common.Pagination
+import com.whimo.data.harvestseasons.model.response.HarvestSeasonData
 
 data class CommoditiesGroupsResponse(
     val success: Boolean,
@@ -44,4 +45,20 @@ data class Commodity(
     val has_recipe: Boolean,
     val group: CommodityGroup?,
     val balance: Float?,
+)
+
+data class CommodityBalancesResponse(
+    val success: Boolean,
+    val pagination: Pagination,
+    val data: List<CommodityBalance>,
+    val message: String
+)
+
+data class CommodityBalance(
+    val id: String,
+    val volume: Float,
+    val commodity: Commodity,
+    val harvest_season: HarvestSeasonData?,
+    val traceability: String?,
+    val has_recipe: Boolean,
 )

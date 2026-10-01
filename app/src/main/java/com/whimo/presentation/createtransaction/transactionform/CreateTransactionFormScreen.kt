@@ -55,6 +55,8 @@ import com.whimo.presentation.createtransaction.SharedTransactionViewModel
 import com.whimo.presentation.createtransaction.components.CreateTransactionDialog
 import com.whimo.presentation.createtransaction.components.CreateTransactionItem
 import com.whimo.presentation.createtransaction.components.CreateTransactionMessage
+import com.whimo.presentation.createtransaction.components.CreateTransactionVolumeBreakdownItem
+import com.whimo.presentation.createtransaction.components.CreateTransactionVolumeItem
 import com.whimo.presentation.createtransaction.components.CreateTransactionWarning
 import com.whimo.presentation.createtransaction.geodata.FarmGeoDataActivity
 import com.whimo.presentation.createtransaction.geodata.FarmGeoDataActivity.Companion.RESULT_FILE
@@ -158,7 +160,7 @@ fun CreateTransactionFormScreen(
         }
     }
 
-    LifecycleEventEffect(event = Lifecycle.Event.ON_CREATE) {
+    LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
         if (sharedTransactionViewModel != null) {
             sharedTransactionViewModel.validateLocationProvider()
             viewModel?.setEvent(
@@ -207,12 +209,25 @@ fun CreateTransactionFormScreen(
                 navController.navigate(Screens.CommodityTypes.route)
             }
 
-            CreateTransactionItem(
-                iconRes = R.drawable.ic_commodity_type,
-                title = stringResource(R.string.volume_commodities_required),
-                description = binding.commodityVolumeText,
-            ) {
-                navController.navigate(Screens.CommodityVolume.route)
+            val volumeBreakdown = binding.commodityVolumeBreakdown
+            if (volumeBreakdown != null) {
+                CreateTransactionVolumeBreakdownItem(
+                    iconRes = R.drawable.ic_commodity_type,
+                    title = stringResource(R.string.volume_commodities_required),
+                    breakdown = volumeBreakdown,
+                ) {
+                    navController.navigate(Screens.CommodityVolume.route)
+                }
+            } else {
+                CreateTransactionVolumeItem(
+                    iconRes = R.drawable.ic_commodity_type,
+                    title = stringResource(R.string.volume_commodities_required),
+                    description = binding.commodityVolumeText,
+                    harvestSeasonText = binding.commodityVolumeHarvestSeasonText,
+                    harvestSeasonStatus = binding.commodityVolumeHarvestSeasonStatus,
+                ) {
+                    navController.navigate(Screens.CommodityVolume.route)
+                }
             }
 
             if (binding.userInfoVisible) {
@@ -253,6 +268,9 @@ fun CreateTransactionFormScreen(
         CreateTransactionDialog(
             title = stringResource(R.string.save_transaction_title),
             description = stringResource(R.string.save_transaction_description),
+            warningDescription = if (binding.isTestEnvironmentEnabled) {
+                stringResource(R.string.test_environment_transaction_notice)
+            } else null,
             actionButtonTitle = stringResource(R.string.save_transaction),
             secondButtonTitle = stringResource(R.string.review_information),
             onActionClick = {

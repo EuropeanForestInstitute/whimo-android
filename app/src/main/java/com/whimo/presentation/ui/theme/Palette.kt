@@ -52,6 +52,12 @@ val ColorWarning = Color(0XFFE19C3B)
 val ColorWarning10 = Color(0x1AE19C3B)
 val ColorError = Color(0XFFC22929)
 
+// Harvest season badge colors
+val ColorHarvestSeasonActiveBackground = Color(0XFFE7F0E7)
+val ColorHarvestSeasonActiveContent = Color(0XFF0F6E0F)
+val ColorHarvestSeasonPastBackground = Color(0XFFF0EFE7)
+val ColorHarvestSeasonPastContent = Color(0XFF6E5C0F)
+
 // Other colors
 val ColorLightBlue = Color(0xFFEEF6FA)
 val ColorLightOrange = Color(0xFFFDF7EF)

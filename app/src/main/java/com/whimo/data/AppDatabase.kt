@@ -23,10 +23,14 @@ package com.whimo.data
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.whimo.data.commodity.model.entity.CommodityBalanceEntity
 import com.whimo.data.commodity.model.entity.CommodityGroupEntity
+import com.whimo.data.commodity.service.CommodityBalancesDao
 import com.whimo.data.commodity.service.CommodityGroupsDao
 import com.whimo.data.createtransaction.model.entity.PendingTransactionEntity
 import com.whimo.data.createtransaction.service.PendingTransactionsDao
+import com.whimo.data.harvestseasons.model.entity.HarvestSeasonEntity
+import com.whimo.data.harvestseasons.service.HarvestSeasonsDao
 import com.whimo.data.notifications.model.entity.NotificationEntity
 import com.whimo.data.notifications.service.NotificationsDao
 import com.whimo.data.settings.model.entity.NotificationSettingEntity
@@ -44,14 +48,18 @@ import com.whimo.data.transactions.service.TransactionsDao
         NotificationSettingEntity::class,
         NotificationEntity::class,
         TraceabilityCountsEntity::class,
+        HarvestSeasonEntity::class,
+        CommodityBalanceEntity::class,
     ],
-    version = 5
+    version = 7
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun commodityGroupsDao(): CommodityGroupsDao
+    abstract fun commodityBalancesDao(): CommodityBalancesDao
     abstract fun transactionsDao(): TransactionsDao
     abstract fun pendingTransactionsDao(): PendingTransactionsDao
     abstract fun notificationSettingsDao(): NotificationSettingsDao
     abstract fun notificationsDao(): NotificationsDao
     abstract fun traceabilityCountsDao(): TraceabilityCountsDao
+    abstract fun harvestSeasonsDao(): HarvestSeasonsDao
 }

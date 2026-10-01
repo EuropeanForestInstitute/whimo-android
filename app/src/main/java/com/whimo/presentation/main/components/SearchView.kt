@@ -28,7 +28,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
@@ -60,9 +62,13 @@ private fun Preview() {
 fun SearchFilterBar(
     modifier: Modifier = Modifier,
     query: String = "",
+    hintText: String = stringResource(R.string.search_transaction),
     filterIsActive: Boolean = false,
+    showDateFilter: Boolean = false,
+    dateFilterIsActive: Boolean = false,
     onSearch: (String) -> Unit = {},
-    onFilterClick: () -> Unit = {}
+    onFilterClick: () -> Unit = {},
+    onDateFilterClick: () -> Unit = {},
 ) {
 
     Row(
@@ -76,7 +82,7 @@ fun SearchFilterBar(
             modifier = Modifier
                 .weight(1f),
 
-            hintText = stringResource(R.string.search_transaction),
+            hintText = hintText,
             text = query,
 
             keyboardOptions = KeyboardOptions(
@@ -106,22 +112,56 @@ fun SearchFilterBar(
             errorContainerColor = MaterialTheme.colorScheme.surface,
         )
 
-        Surface(
-            shape = RoundedCornerShape(8.dp)
+        if (showDateFilter) {
+            SearchActionButton(
+                iconRes = R.drawable.ic_calendar,
+                contentDescription = stringResource(R.string.select_dates),
+                isActive = dateFilterIsActive,
+                onClick = onDateFilterClick,
+            )
+        }
+
+        SearchActionButton(
+            iconRes = R.drawable.ic_filter,
+            contentDescription = stringResource(R.string.filter_icon),
+            isActive = filterIsActive,
+            onClick = onFilterClick,
+        )
+    }
+}
+
+@Composable
+private fun SearchActionButton(
+    iconRes: Int,
+    contentDescription: String,
+    isActive: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                .clickable { onClick() },
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
-                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-                    .clickable { onFilterClick() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(id = if (filterIsActive) R.drawable.ic_calendar_dot else R.drawable.ic_calendar),
-                    contentDescription = stringResource(R.string.filter_icon),
-                    tint = Color.Unspecified,
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(id = iconRes),
+                contentDescription = contentDescription,
+                tint = Color.Unspecified,
+            )
+
+            if (isActive) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = (-12).dp, y = 12.dp)
+                        .size(8.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
                 )
             }
         }

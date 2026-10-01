@@ -40,6 +40,7 @@ import androidx.navigation.compose.rememberNavController
 import com.whimo.navigation.navgraphs.NotificationsNavGraph
 import com.whimo.network.authenticator.SessionManager
 import com.whimo.presentation.auth.AuthActivity
+import com.whimo.presentation.ui.components.TestEnvironmentFrame
 import com.whimo.presentation.ui.theme.WhimoTheme
 import org.koin.android.ext.android.inject
 
@@ -62,10 +63,12 @@ class NotificationsActivity : ComponentActivity(), OnBackPressedDispatcherOwner 
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.surfaceVariant,
                     ) {
-                        NotificationsNavGraph(
-                            modifier = Modifier,
-                            navController = navController
-                        )
+                        TestEnvironmentFrame(modifier = Modifier.fillMaxSize()) {
+                            NotificationsNavGraph(
+                                modifier = Modifier,
+                                navController = navController
+                            )
+                        }
                     }
                 }
             }

@@ -26,9 +26,8 @@ import com.whimo.base.CoreViewEvent
 import com.whimo.data.base.common.onError
 import com.whimo.data.base.common.onSuccess
 import com.whimo.domain.commodity.CommodityInteractor
-import com.whimo.domain.commodity.models.CommodityFilter
+import com.whimo.domain.commodity.models.CommodityBalanceFilter
 import com.whimo.domain.commodity.models.CommodityGroupModel
-import com.whimo.domain.commodity.models.CommodityModel
 import com.whimo.network.ErrorHandler
 
 class CommodityGroupBalancesViewModel(
@@ -38,8 +37,8 @@ class CommodityGroupBalancesViewModel(
 
     private var commodityGroup: CommodityGroupModel? = null
 
-    private val filter = CommodityFilter()
-    private var commodities: List<CommodityModel>? = null
+    private val filter = CommodityBalanceFilter()
+    private var balances: List<BalanceCommodityItemModel>? = null
 
     override fun createBinding(): CommodityGroupBalancesContract.Binding {
         return CommodityGroupBalancesContract.Binding()
@@ -58,27 +57,23 @@ class CommodityGroupBalancesViewModel(
 
     private fun onCreate(commodityGroup: CommodityGroupModel?) {
         this.commodityGroup = commodityGroup
+        filter.groupId = commodityGroup?.id
 
-        if (commodities.isNullOrEmpty()) {
-            launch {
-                updateCommodities(interactor.getCommoditiesFromDB())
-                updateView()
-
-                getCommodities()
-            }
-        } else {
-            getCommodities()
-        }
+        getBalances()
     }
 
-    private fun getCommodities() {
+    private fun getBalances() {
         launch {
-            setEffect(CommodityGroupBalancesContract.Effect.ToggleLoader(commodities.isNullOrEmpty()))
-            interactor.getCommodities(filter)
-                .onSuccess {
-                    updateCommodities(it)
-                    interactor.updateCommoditiesDB(it)
+            val cachedBalances = interactor.getBalancesFromDB(filter)
+            if (cachedBalances.isNotEmpty()) {
+                balances = cachedBalances.map { balance -> balance.toBalanceCommodityItemModel() }
+                updateView()
+            }
 
+            setEffect(CommodityGroupBalancesContract.Effect.ToggleLoader(balances.isNullOrEmpty()))
+            interactor.getBalances(filter)
+                .onSuccess {
+                    balances = it.orEmpty().map { balance -> balance.toBalanceCommodityItemModel() }
                     setEffect(CommodityGroupBalancesContract.Effect.ToggleLoader(false))
                     updateView()
                 }
@@ -93,15 +88,11 @@ class CommodityGroupBalancesViewModel(
         }
     }
 
-    private fun updateCommodities(commodities: List<CommodityGroupModel>?) {
-        this.commodities = commodities?.find { it.id == commodityGroup?.id }?.commodities?.filter { it.balance != null }
-    }
-
     private fun updateView() {
         updateBinding { b ->
             b.title = commodityGroup?.name ?: ""
             b.query = filter.query
-            b.commodities = commodities
+            b.balances = balances
         }
     }
 }

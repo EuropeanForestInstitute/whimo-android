@@ -100,6 +100,7 @@ fun MapScreen(
         Toolbar2(
             navController = navController,
             title = stringResource(R.string.farm_geodata),
+            showOfflineBanner = false,
         )
 
         Box(

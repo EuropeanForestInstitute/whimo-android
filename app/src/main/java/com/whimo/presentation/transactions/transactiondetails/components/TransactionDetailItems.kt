@@ -52,11 +52,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.whimo.R
+import com.whimo.domain.transactions.models.HarvestSeasonModel
+import com.whimo.domain.transactions.models.HarvestSeasonStatus
 import com.whimo.domain.transactions.models.TraceabilityStatus
 import com.whimo.domain.transactions.models.TransactionModel
 import com.whimo.domain.transactions.models.TransactionStatus
 import com.whimo.domain.transactions.models.getCommodityVolumeText
+import com.whimo.domain.transactions.models.getShortName
 import com.whimo.extensions.toFormattedDateString
+import com.whimo.presentation.main.components.HarvestSeasonStatusBadge
 import com.whimo.presentation.main.components.TraceabilityStatusView
 import com.whimo.presentation.main.components.TransactionStatusView
 import com.whimo.presentation.ui.theme.ColorGray40
@@ -115,6 +119,14 @@ private fun Preview() {
                 status = TraceabilityStatus.Full,
             )
 
+            TransactionInfoHarvestSeasonItem(
+                season = HarvestSeasonModel(
+                    id = "1",
+                    name = "Harvest season 2026/27",
+                    status = HarvestSeasonStatus.Active,
+                ),
+            )
+
             TransactionInfoTraceabilityItem(
                 status = TraceabilityStatus.Partial,
                 chartTitle = "traders",
@@ -148,6 +160,7 @@ private fun Preview() {
 fun TitleDescriptionView(
     title: String,
     description: String,
+    warningText: String? = null,
 ) {
     Column(
         modifier = Modifier
@@ -171,6 +184,63 @@ fun TitleDescriptionView(
             color = MaterialTheme.colorScheme.onSurface
         )
 
+        if (!warningText.isNullOrBlank()) {
+            Text(
+                text = warningText,
+                modifier = Modifier.fillMaxWidth(),
+                style = TextStyleBodyS,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
+fun TransactionInfoHarvestSeasonItem(
+    season: HarvestSeasonModel,
+    onClick: () -> Unit = {},
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .background(color = MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.harvest_season),
+                style = TextStyleBodyS,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = season.getShortName(),
+                    style = TextStyleBodyM,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+
+                season.status?.let { status ->
+                    HarvestSeasonStatusBadge(status = status)
+                }
+            }
+        }
+
+        Icon(
+            modifier = Modifier.size(24.dp),
+            painter = painterResource(id = R.drawable.ic_chevron_forward),
+            contentDescription = null,
+            tint = ColorGray40,
+        )
     }
 }
 
@@ -272,7 +342,7 @@ fun TransactionInfoStatusItem(
             .clickable { onClick() }
             .background(color = MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        title = "Transaction status",
+        title = stringResource(R.string.transaction_status),
     ) {
 
         Spacer(modifier = Modifier.weight(1f))

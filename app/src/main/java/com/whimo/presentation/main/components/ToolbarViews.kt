@@ -47,6 +47,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.whimo.R
 import com.whimo.extensions.findActivity
+import com.whimo.presentation.ui.components.OfflineInfoBannerHost
+import com.whimo.presentation.ui.components.TestEnvironmentBanner
 import com.whimo.presentation.ui.theme.TextStyleBodyM
 import com.whimo.presentation.ui.theme.TextStyleH1
 import com.whimo.presentation.ui.theme.TextStyleH2
@@ -91,35 +93,40 @@ fun Toolbar(
     title: String,
     iconRes: Int? = null,
     iconTint: Color = Color.Unspecified,
+    showOfflineBanner: Boolean = true,
     onIconClick: (() -> Unit)? = null,
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(start = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            modifier = Modifier.weight(1f),
-            text = title,
-            style = TextStyleH2,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-
-        if (iconRes != null && onIconClick != null) {
-            Icon(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clickable { onIconClick() }
-                    .padding(16.dp),
-                painter = painterResource(id = iconRes),
-                tint = iconTint,
-                contentDescription = "Option button",
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(start = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                modifier = Modifier.weight(1f),
+                text = title,
+                style = TextStyleH2,
+                color = MaterialTheme.colorScheme.onSurface,
             )
+
+            if (iconRes != null && onIconClick != null) {
+                Icon(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clickable { onIconClick() }
+                        .padding(16.dp),
+                    painter = painterResource(id = iconRes),
+                    tint = iconTint,
+                    contentDescription = "Option button",
+                )
+            }
         }
+
+        ToolbarBanners(showOfflineBanner = showOfflineBanner)
     }
 }
 
@@ -130,50 +137,55 @@ fun Toolbar2(
     title: String,
     iconRes: Int? = null,
     iconTint: Color = Color.Unspecified,
+    showOfflineBanner: Boolean = true,
     onIconClick: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .background(MaterialTheme.colorScheme.surface),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Icon(
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
             modifier = Modifier
-                .size(56.dp)
-                .clickable {
-                    if (!navController.popBackStack()) {
-                        context
-                            .findActivity()
-                            .finish()
-                    }
-                }
-                .padding(16.dp),
-            painter = painterResource(id = R.drawable.ic_arrow_left),
-            contentDescription = "Back button",
-        )
-
-        Text(
-            modifier = Modifier.weight(1f),
-            text = title,
-            style = TextStyleMediumL,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-
-        if (iconRes != null && onIconClick != null) {
+                .fillMaxWidth()
+                .height(60.dp)
+                .background(MaterialTheme.colorScheme.surface),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Icon(
                 modifier = Modifier
                     .size(56.dp)
-                    .clickable { onIconClick() }
+                    .clickable {
+                        if (!navController.popBackStack()) {
+                            context
+                                .findActivity()
+                                .finish()
+                        }
+                    }
                     .padding(16.dp),
-                painter = painterResource(id = iconRes),
-                tint = iconTint,
-                contentDescription = "Option button",
+                painter = painterResource(id = R.drawable.ic_arrow_left),
+                contentDescription = "Back button",
             )
+
+            Text(
+                modifier = Modifier.weight(1f),
+                text = title,
+                style = TextStyleMediumL,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            if (iconRes != null && onIconClick != null) {
+                Icon(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clickable { onIconClick() }
+                        .padding(16.dp),
+                    painter = painterResource(id = iconRes),
+                    tint = iconTint,
+                    contentDescription = "Option button",
+                )
+            }
         }
+
+        ToolbarBanners(showOfflineBanner = showOfflineBanner)
     }
 }
 
@@ -182,24 +194,41 @@ fun Toolbar3(
     modifier: Modifier = Modifier,
     title: String,
     description: String,
+    showOfflineBanner: Boolean = true,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = title,
-            style = TextStyleH1,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        
-        Text(
-            text = description,
-            style = TextStyleBodyM,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    Column(modifier = modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = title,
+                style = TextStyleH1,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Text(
+                text = description,
+                style = TextStyleBodyM,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        if (showOfflineBanner) {
+            OfflineInfoBannerHost()
+        }
+    }
+}
+
+@Composable
+private fun ToolbarBanners(
+    showOfflineBanner: Boolean,
+) {
+    TestEnvironmentBanner()
+    if (showOfflineBanner) {
+        OfflineInfoBannerHost()
     }
 }

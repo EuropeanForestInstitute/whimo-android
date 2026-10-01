@@ -67,31 +67,32 @@ private fun Preview() {
 @Composable
 fun TraceabilityStatusView(
     status: TraceabilityStatus,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shortName: Boolean = false,
 ) {
     var bgColor = ColorSuccess10
-    var text = stringResource(R.string.full_traceability)
+    var text = stringResource(if (shortName) R.string.full else R.string.full_traceability)
     var textColor = ColorSuccess
 
     when (status) {
         TraceabilityStatus.Full -> {
             bgColor = ColorSuccess10
-            text = stringResource(R.string.full_traceability)
+            text = stringResource(if (shortName) R.string.full else R.string.full_traceability)
             textColor = ColorSuccess
         }
         TraceabilityStatus.Conditional -> {
             bgColor = ColorSeaBlue10
-            text = stringResource(R.string.conditional_traceability)
+            text = stringResource(if (shortName) R.string.conditional else R.string.conditional_traceability)
             textColor = ColorSeaBlue
         }
         TraceabilityStatus.Partial -> {
             bgColor = ColorMulberryPurple10
-            text = stringResource(R.string.partial_traceability)
+            text = stringResource(if (shortName) R.string.partial else R.string.partial_traceability)
             textColor = ColorMulberryPurple
         }
         TraceabilityStatus.Incomplete -> {
             bgColor = ColorMidnightBlue10
-            text = stringResource(R.string.incomplete_traceability)
+            text = stringResource(if (shortName) R.string.incomplete else R.string.incomplete_traceability)
             textColor = ColorMidnightBlue
         }
     }

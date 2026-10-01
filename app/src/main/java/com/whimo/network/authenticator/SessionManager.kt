@@ -39,7 +39,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class SessionManager(
-    private val service: RefreshService,
+    private val refreshService: RefreshService,
     private val sharedPreferencesProvider: SharedPreferencesProvider,
     private val appDatabase: AppDatabase,
 ) {
@@ -90,7 +90,7 @@ class SessionManager(
     }
 
     private suspend fun refresh(request: RefreshRequest): BaseResult<AuthModel> {
-        return handleResponse { service.refresh(request) }.mapResult { it?.toDomain() }
+        return handleResponse { refreshService.refresh(request) }.mapResult { it?.toDomain() }
     }
 
     private suspend fun logout() {

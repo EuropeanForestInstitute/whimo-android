@@ -22,10 +22,14 @@
 package com.whimo.data.commodity.repository
 
 import com.whimo.data.base.common.BaseResult
+import com.whimo.data.commodity.model.mappers.toBalanceDomain
 import com.whimo.data.commodity.model.mappers.toDomain
 import com.whimo.data.commodity.model.mappers.toEntity
+import com.whimo.data.commodity.service.CommodityBalancesDao
 import com.whimo.data.commodity.service.CommodityGroupsDao
 import com.whimo.data.commodity.service.CommodityService
+import com.whimo.data.harvestseasons.repository.HarvestSeasonCommodityLinker
+import com.whimo.domain.commodity.models.CommodityBalanceModel
 import com.whimo.domain.commodity.models.CommodityGroupModel
 import com.whimo.network.handleResponse
 import com.whimo.network.mapResult
@@ -40,11 +44,29 @@ interface CommodityRepository {
     suspend fun getCommoditiesFromDB(): List<CommodityGroupModel>
 
     suspend fun updateCommoditiesDB(items: List<CommodityGroupModel>?)
+
+    suspend fun getBalancesFromDB(
+        search: String?,
+        commodityGroupId: String?,
+        commodityId: String?,
+        harvestSeasonId: String?,
+    ): List<CommodityBalanceModel>
+
+    suspend fun getBalances(
+        search: String?,
+        page: Int,
+        pageSize: Int,
+        commodityGroupId: String?,
+        commodityId: String?,
+        harvestSeasonId: String?,
+    ): BaseResult<List<CommodityBalanceModel>>
 }
 
 class CommodityRepositoryImpl(
     private val service: CommodityService,
     private val dao: CommodityGroupsDao,
+    private val balancesDao: CommodityBalancesDao,
+    private val harvestSeasonCommodityLinker: HarvestSeasonCommodityLinker,
 ) : CommodityRepository {
 
     override suspend fun getCommodities(
@@ -70,5 +92,108 @@ class CommodityRepositoryImpl(
         if (items != null) {
             dao.insertAll(items.map { it.toEntity() })
         }
+    }
+
+    override suspend fun getBalancesFromDB(
+        search: String?,
+        commodityGroupId: String?,
+        commodityId: String?,
+        harvestSeasonId: String?,
+    ): List<CommodityBalanceModel> {
+        val cachedBalances = getCachedBalances()
+        harvestSeasonCommodityLinker.linkHarvestSeasonsToBalances(cachedBalances)
+
+        return cachedBalances
+            .filterByBalanceRequest(
+                search = search,
+                commodityGroupId = commodityGroupId,
+                commodityId = commodityId,
+                harvestSeasonId = harvestSeasonId,
+            )
+    }
+
+    override suspend fun getBalances(
+        search: String?,
+        page: Int,
+        pageSize: Int,
+        commodityGroupId: String?,
+        commodityId: String?,
+        harvestSeasonId: String?,
+    ): BaseResult<List<CommodityBalanceModel>> {
+        val result = handleResponse {
+            service.getBalances(
+                search = search,
+                page = page,
+                pageSize = pageSize,
+                commodityGroupId = commodityGroupId,
+                commodityId = commodityId,
+                harvestSeasonId = harvestSeasonId,
+            )
+        }.mapResult { it?.toBalanceDomain() }
+
+        if (result is BaseResult.Success) {
+            val balances = result.data.orEmpty()
+            updateBalancesDB(
+                items = balances,
+                replaceAll = search == null &&
+                        commodityGroupId == null &&
+                        commodityId == null &&
+                        harvestSeasonId == null,
+            )
+            harvestSeasonCommodityLinker.linkHarvestSeasonsToBalances(balances)
+            return result
+        }
+
+        val cachedBalances = getCachedBalances()
+        if (cachedBalances.isNotEmpty()) {
+            harvestSeasonCommodityLinker.linkHarvestSeasonsToBalances(cachedBalances)
+            return BaseResult.Success(
+                cachedBalances.filterByBalanceRequest(
+                    search = search,
+                    commodityGroupId = commodityGroupId,
+                    commodityId = commodityId,
+                    harvestSeasonId = harvestSeasonId,
+                )
+            )
+        }
+
+        return result
+    }
+
+    private suspend fun getCachedBalances(): List<CommodityBalanceModel> {
+        return balancesDao.getAll().map { it.toDomain() }
+    }
+
+    private suspend fun updateBalancesDB(
+        items: List<CommodityBalanceModel>,
+        replaceAll: Boolean,
+    ) {
+        if (replaceAll) {
+            balancesDao.clearAll()
+        }
+        if (items.isNotEmpty()) {
+            balancesDao.insertAll(items.map { it.toEntity() })
+        }
+    }
+}
+
+private fun List<CommodityBalanceModel>.filterByBalanceRequest(
+    search: String?,
+    commodityGroupId: String?,
+    commodityId: String?,
+    harvestSeasonId: String?,
+): List<CommodityBalanceModel> {
+    val normalizedSearch = search?.trim()?.takeIf { it.isNotEmpty() }
+
+    return filter { balance ->
+        val validSearch = normalizedSearch == null ||
+                balance.commodity.code.contains(normalizedSearch, ignoreCase = true) ||
+                balance.commodity.name.contains(normalizedSearch, ignoreCase = true) ||
+                balance.commodity.group?.name?.contains(normalizedSearch, ignoreCase = true) == true
+        val validCommodityGroup = commodityGroupId == null || balance.commodity.group?.id == commodityGroupId
+        val validCommodity = commodityId == null || balance.commodity.id == commodityId
+        val validHarvestSeason = harvestSeasonId == null || balance.harvestSeason?.id == harvestSeasonId
+
+        validSearch && validCommodityGroup && validCommodity && validHarvestSeason
     }
 }

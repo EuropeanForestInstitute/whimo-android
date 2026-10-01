@@ -25,13 +25,12 @@ import com.whimo.base.CoreViewBinding
 import com.whimo.base.CoreViewEvent
 import com.whimo.base.CoreViewSideEffect
 import com.whimo.domain.commodity.models.CommodityGroupModel
-import com.whimo.domain.commodity.models.CommodityModel
 
 object CommodityGroupBalancesContract {
     data class Binding(
         var title: String = "",
         var query: String? = null,
-        var commodities: List<CommodityModel>? = null,
+        var balances: List<BalanceCommodityItemModel>? = null,
     ) : CoreViewBinding
 
     sealed class Event : CoreViewEvent {

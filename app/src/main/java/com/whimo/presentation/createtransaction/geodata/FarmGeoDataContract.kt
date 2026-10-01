@@ -46,5 +46,6 @@ object FarmGeoDataContract {
     sealed class Effect : CoreViewSideEffect {
         data object RequestLocationPermission: Effect()
         data class LocationRecorded(val location: LatLng): Effect()
+        data class ToggleLoader(val isLoading: Boolean): Effect()
     }
 }

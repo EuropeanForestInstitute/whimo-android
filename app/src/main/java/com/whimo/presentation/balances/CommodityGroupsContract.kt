@@ -25,19 +25,32 @@ import com.whimo.base.CoreViewBinding
 import com.whimo.base.CoreViewEvent
 import com.whimo.base.CoreViewSideEffect
 import com.whimo.domain.commodity.models.CommodityGroupModel
+import com.whimo.domain.transactions.models.HarvestSeasonModel
 
 object CommodityGroupsContract {
     data class Binding(
         var query: String? = null,
-        var commodities: List<CommodityGroupModel>? = null,
+        var balances: List<BalanceCommodityItemModel>? = null,
+        var commodityGroups: List<CommodityGroupModel> = emptyList(),
+        var selectedCommodityGroup: CommodityGroupModel? = null,
+        var harvestSeasons: List<HarvestSeasonModel> = emptyList(),
+        var selectedHarvestSeason: HarvestSeasonModel? = null,
+        var isRefreshing: Boolean = false,
     ) : CoreViewBinding
 
     sealed class Event : CoreViewEvent {
         data object OnCreate : Event()
+        data object Refresh : Event()
+        data class QueryChanged(val query: String) : Event()
+        data class HarvestSeasonFilterCommodityGroupChanged(val commodityGroup: CommodityGroupModel?) : Event()
+        data class HarvestSeasonFilterChanged(
+            val commodityGroup: CommodityGroupModel?,
+            val harvestSeason: HarvestSeasonModel?,
+        ) : Event()
+        data class HarvestSeasonChanged(val harvestSeason: HarvestSeasonModel?) : Event()
     }
 
     sealed class Effect : CoreViewSideEffect {
-        data class ToggleLoader(val isLoading: Boolean): Effect()
         data class ShowMessage(val message: String): Effect()
     }
 }

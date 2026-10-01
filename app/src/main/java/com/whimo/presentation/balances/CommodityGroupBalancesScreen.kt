@@ -40,7 +40,7 @@ import com.whimo.base.ObserveEffects
 import com.whimo.domain.commodity.models.CommodityGroupModel
 import com.whimo.extensions.isNetworkAvailable
 import com.whimo.navigation.Screens
-import com.whimo.presentation.balances.components.CommodityBalancesList
+import com.whimo.presentation.balances.components.BalanceCommodityList
 import com.whimo.presentation.main.components.Toolbar2
 import com.whimo.presentation.ui.theme.WhimoTheme
 import com.whimo.utils.toJsonArgs
@@ -95,16 +95,27 @@ fun CommodityGroupBalancesScreen(
             title = binding.title,
         )
 
-        if (binding.commodities != null) {
-            CommodityBalancesList(
+        if (binding.balances != null) {
+            BalanceCommodityList(
                 modifier = Modifier.fillMaxHeight(),
                 networkAvailable = context.isNetworkAvailable(),
-                commodities = binding.commodities!!,
-                onSelect = {
+                items = binding.balances!!,
+                onBalanceClick = {
+                    navController.navigate(
+                        Screens.BalanceDetails.putArgs(
+                            Screens.ARG_KEY_JSON to BalanceDetailsArgs(
+                                commodity = it.commodity,
+                                harvestSeason = it.harvestSeason,
+                                traceabilityStatus = it.traceabilityStatus,
+                            ).toJsonArgs()
+                        )
+                    )
+                },
+                onConvertClick = {
                     navController.navigate(
                         Screens.ConvertRecipes.putArgs(Screens.ARG_KEY_JSON to it.toJsonArgs())
                     )
-                }
+                },
             )
         }
     }

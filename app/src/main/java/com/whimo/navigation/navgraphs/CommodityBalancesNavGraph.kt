@@ -33,6 +33,8 @@ import com.whimo.domain.commodity.models.CommodityGroupModel
 import com.whimo.domain.commodity.models.CommodityModel
 import com.whimo.domain.commodity.models.ConvertRecipeModel
 import com.whimo.navigation.Screens
+import com.whimo.presentation.balances.BalanceDetailsArgs
+import com.whimo.presentation.balances.BalanceDetailsScreen
 import com.whimo.presentation.balances.CommodityGroupBalancesScreen
 import com.whimo.presentation.balances.convert.ConvertCommodityScreen
 import com.whimo.presentation.balances.convert.ConvertRecipesScreen
@@ -43,6 +45,8 @@ fun CommodityBalancesNavGraph(
     modifier: Modifier,
     navController: NavHostController,
     commodityGroup: CommodityGroupModel?,
+    balanceDetailsArgs: BalanceDetailsArgs? = null,
+    convertCommodity: CommodityModel? = null,
 ) {
     NavHost(
         modifier = modifier.fillMaxSize(),
@@ -50,11 +54,29 @@ fun CommodityBalancesNavGraph(
         startDestination = Screens.GroupBalances.route,
     ) {
         composable(route = Screens.GroupBalances.route) {
-            CommodityGroupBalancesScreen(
-                modifier = modifier.fillMaxSize(),
-                navController = navController,
-                commodityGroup = commodityGroup,
-            )
+            when {
+                balanceDetailsArgs != null -> {
+                    BalanceDetailsScreen(
+                        modifier = modifier.fillMaxSize(),
+                        navController = navController,
+                        args = balanceDetailsArgs,
+                    )
+                }
+                convertCommodity != null -> {
+                    ConvertRecipesScreen(
+                        modifier = modifier.fillMaxSize(),
+                        navController = navController,
+                        commodityModel = convertCommodity,
+                    )
+                }
+                else -> {
+                    CommodityGroupBalancesScreen(
+                        modifier = modifier.fillMaxSize(),
+                        navController = navController,
+                        commodityGroup = commodityGroup,
+                    )
+                }
+            }
         }
         composable(
             route = Screens.ConvertRecipes.route,
@@ -71,6 +93,23 @@ fun CommodityBalancesNavGraph(
                 modifier = modifier.fillMaxSize(),
                 navController = navController,
                 commodityModel = json?.fromJsonArgs<CommodityModel>(),
+            )
+        }
+        composable(
+            route = Screens.BalanceDetails.route,
+            arguments = listOf(
+                navArgument(Screens.ARG_KEY_JSON) {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            )
+        ) {
+            val json = it.arguments?.getString(Screens.ARG_KEY_JSON)
+
+            BalanceDetailsScreen(
+                modifier = modifier.fillMaxSize(),
+                navController = navController,
+                args = json?.fromJsonArgs<BalanceDetailsArgs>(),
             )
         }
         composable(

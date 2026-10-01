@@ -22,10 +22,13 @@
 package com.whimo.data.transactions.model.mappers
 
 import com.whimo.data.commodity.model.response.Commodity
+import com.whimo.data.harvestseasons.model.response.HarvestSeasonData
 import com.whimo.data.transactions.model.response.TransactionData
 import com.whimo.extensions.toLocalDateTime
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
+import java.time.LocalDate
 
 class TransactionsMapperTest {
 
@@ -47,9 +50,50 @@ class TransactionsMapperTest {
         assertEquals(result.createdDate, result.updatedDate)
     }
 
+    @Test
+    fun `toDomain maps harvest season when response contains season object`() {
+        val result = transactionData(
+            harvestSeason = HarvestSeasonData(
+                id = "season-id",
+                name = "Cocoa 2025/26",
+                start_date = "2025-09-01",
+                end_date = "2026-09-01",
+                status = "active",
+            )
+        ).toDomain()
+
+        assertNotNull(result.harvestSeason)
+        assertEquals("season-id", result.harvestSeason?.id)
+        assertEquals("Cocoa 2025/26", result.harvestSeason?.name)
+        assertEquals(LocalDate.of(2025, 9, 1), result.harvestSeason?.startDate)
+        assertEquals(LocalDate.of(2026, 9, 1), result.harvestSeason?.endDate)
+    }
+
+    @Test
+    fun `toDomain prefers transaction coordinates over legacy and farm coordinates`() {
+        val result = transactionData(
+            latitude = 1.0,
+            longitude = 2.0,
+            transactionLatitude = 3.0,
+            transactionLongitude = 4.0,
+            farmLatitude = 5.0,
+            farmLongitude = 6.0,
+        ).toDomain()
+
+        assertEquals(3.0, result.location?.latitude)
+        assertEquals(4.0, result.location?.longitude)
+    }
+
     private fun transactionData(
         createdAt: String = "2025-02-03T10:00:00Z",
         updatedAt: String? = "2025-02-03T12:30:45Z",
+        latitude: Double? = null,
+        longitude: Double? = null,
+        transactionLatitude: Double? = null,
+        transactionLongitude: Double? = null,
+        farmLatitude: Double? = null,
+        farmLongitude: Double? = null,
+        harvestSeason: HarvestSeasonData? = null,
     ) = TransactionData(
         id = "transaction-id",
         created_at = createdAt,
@@ -59,8 +103,12 @@ class TransactionsMapperTest {
         status = "accepted",
         action = "buying",
         location = "gps",
-        latitude = null,
-        longitude = null,
+        latitude = latitude,
+        longitude = longitude,
+        transaction_latitude = transactionLatitude,
+        transaction_longitude = transactionLongitude,
+        farm_latitude = farmLatitude,
+        farm_longitude = farmLongitude,
         commodity = Commodity(
             id = "commodity-id",
             code = "COCOA",
@@ -76,6 +124,7 @@ class TransactionsMapperTest {
         buyer = null,
         is_buying_from_farmer = false,
         is_automatic = false,
+        harvest_season = harvestSeason,
         created_by_id = "creator-id",
     )
 }

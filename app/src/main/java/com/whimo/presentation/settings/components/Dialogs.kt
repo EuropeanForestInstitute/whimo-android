@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -82,10 +83,12 @@ fun DialogButtonsItem(
     actionButtonBackgroundColor: Color,
     actionButtonBorderColor: Color = actionButtonBackgroundColor,
     actionButtonTitleColor: Color,
+    actionButtonEnabled: Boolean = true,
     secondButtonTitle: String = stringResource(R.string.cancel),
     secondButtonBackgroundColor: Color = MaterialTheme.colorScheme.surface,
     secondButtonBorderColor: Color = MaterialTheme.colorScheme.outline,
     secondButtonTitleColor: Color = MaterialTheme.colorScheme.onSurface,
+    secondButtonEnabled: Boolean = true,
     onActionClick: () -> Unit = {},
     onSecondClick: () -> Unit = {},
 ) {
@@ -102,6 +105,7 @@ fun DialogButtonsItem(
             titleColor = secondButtonTitleColor,
             backgroundColor = secondButtonBackgroundColor,
             borderColor = secondButtonBorderColor,
+            isEnabled = secondButtonEnabled,
             onClick = onSecondClick,
         )
 
@@ -111,6 +115,7 @@ fun DialogButtonsItem(
             titleColor = actionButtonTitleColor,
             backgroundColor = actionButtonBackgroundColor,
             borderColor = actionButtonBorderColor,
+            isEnabled = actionButtonEnabled,
             onClick = onActionClick,
         )
     }
@@ -123,20 +128,25 @@ fun DialogButton(
     titleColor: Color,
     backgroundColor: Color,
     borderColor: Color = backgroundColor,
+    isEnabled: Boolean = true,
     onClick: () -> Unit = {},
 ) {
     Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp)
+        modifier = modifier.alpha(if (isEnabled) 1f else 0.5f),
+        shape = RoundedCornerShape(8.dp),
     ) {
         Box(
             modifier = modifier
                 .background(
                     color = backgroundColor,
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
                 )
-                .border(1.dp, borderColor, RoundedCornerShape(8.dp))
-                .clickable { onClick() },
+                .border(
+                    width = 1.dp,
+                    color = borderColor,
+                    shape = RoundedCornerShape(8.dp),
+                )
+                .clickable(enabled = isEnabled) { onClick() },
             contentAlignment = Alignment.Center,
         ) {
             Text(

@@ -25,3 +25,8 @@ data class PendingTransactionModel(
     val id: Long,
     val transactionModel: CreateTransactionModel,
 )
+
+data class PendingTransactionsSyncProgress(
+    val processedTransactions: Int,
+    val totalTransactions: Int,
+)

@@ -62,6 +62,13 @@ val createTransactionsModule = module {
     viewModel { SharedTransactionViewModel() }
     viewModel { UploadFileViewModel(resourceProvider = get(), interactor = get()) }
     viewModel { QrScanViewModel(resourceProvider = get(), interactor = get(), errorHandler = get()) }
-    viewModel { CreateTransactionFormViewModel(resourceProvider = get(), interactor = get(), errorHandler = get()) }
+    viewModel {
+        CreateTransactionFormViewModel(
+            resourceProvider = get(),
+            interactor = get(),
+            errorHandler = get(),
+            testEnvironmentManager = get(),
+        )
+    }
     viewModel { UserInfoViewModel(resourceProvider = get(), interactor = get(), errorHandler = get()) }
 }

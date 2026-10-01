@@ -32,6 +32,7 @@ import com.whimo.di.commodityModule
 import com.whimo.di.createTransactionsModule
 import com.whimo.di.dataBaseModule
 import com.whimo.di.geoDataModule
+import com.whimo.di.harvestSeasonsModule
 import com.whimo.di.mainModule
 import com.whimo.di.networkModule
 import com.whimo.di.notificationsModule
@@ -65,6 +66,7 @@ class WhimoApp : Application() {
                 authModule,
                 mainModule,
                 transactionsModule,
+                harvestSeasonsModule,
                 createTransactionsModule,
                 commodityModule,
                 geoDataModule,
@@ -105,4 +107,4 @@ class WhimoApp : Application() {
         notificationManager.createNotificationChannel(channel)
     }
 
-} 
+}

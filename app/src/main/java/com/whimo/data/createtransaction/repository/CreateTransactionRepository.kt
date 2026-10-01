@@ -72,6 +72,7 @@ class CreateTransactionRepositoryImpl(
                 transactionLongitude = request.transactionLongitude.toRequestBodyOrNull(),
                 isBuyingFromFarmer = request.isBuyingFromFarmer.toRequestBodyOrNull(),
                 recipient = request.recipient.toRequestBodyOrNull(),
+                harvestSeasonId = request.harvestSeasonId.toRequestBodyOrNull(),
             )
         }.mapResult { it?.toDomain() }
     }
@@ -87,6 +88,7 @@ class CreateTransactionRepositoryImpl(
                 transactionLongitude = request.transactionLongitude.toRequestBodyOrNull(),
                 action = request.action.toRequestBodyOrNull(),
                 recipient = request.recipient.toRequestBodyOrNull(),
+                harvestSeasonId = request.harvestSeasonId.toRequestBodyOrNull(),
             )
         }.mapResult { it?.toDomain() }
     }

@@ -44,12 +44,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.whimo.R
+import com.whimo.domain.harvestseasons.models.HarvestSeasonStatus
+import com.whimo.presentation.createtransaction.transactionform.CreateTransactionFormContract.CommodityVolumeBreakdown
+import com.whimo.presentation.main.components.HarvestSeasonStatusBadge
+import com.whimo.presentation.main.components.HarvestSeasonTag
+import com.whimo.presentation.ui.theme.ColorLightOrange
+import com.whimo.presentation.ui.theme.ColorWarning
+import com.whimo.presentation.ui.theme.ColorWarning10
 import com.whimo.presentation.ui.theme.TextStyleBodyS
 import com.whimo.presentation.ui.theme.TextStyleButtonM
 import com.whimo.presentation.ui.theme.TextStyleMediumM
+import com.whimo.presentation.ui.theme.TextStyleMediumS
 import com.whimo.presentation.ui.theme.WhimoTheme
 
 @Preview
@@ -63,6 +72,15 @@ private fun Preview() {
             CreateTransactionWarning(
                 iconRes = R.drawable.ic_information,
                 title = stringResource(R.string.please_provide_accurate_info),
+            )
+
+            CreateTransactionWarning(
+                modifier = Modifier.fillMaxWidth(),
+                backgroundColor = ColorLightOrange,
+                borderColor = ColorWarning10,
+                iconRes = R.drawable.ic_warning,
+                iconTint = ColorWarning,
+                title = stringResource(R.string.test_environment_unsynced_changes_title),
             )
 
             CreateTransactionItem(
@@ -81,6 +99,25 @@ private fun Preview() {
                 iconRes = R.drawable.ic_add_commodity,
                 title = stringResource(R.string.volume_commodities_required),
                 description = stringResource(R.string.tap_to_add_data),
+            )
+
+            CreateTransactionVolumeItem(
+                iconRes = R.drawable.ic_commodity_type,
+                title = stringResource(R.string.volume_commodities_required),
+                description = "300 kg",
+                harvestSeasonText = "2025/26",
+            )
+
+            CreateTransactionVolumeBreakdownItem(
+                iconRes = R.drawable.ic_commodity_type,
+                title = stringResource(R.string.volume_commodities_required),
+                breakdown = CommodityVolumeBreakdown(
+                    harvestSeasonAmountText = "500 kg",
+                    harvestSeasonText = "2026/27",
+                    harvestSeasonStatus = HarvestSeasonStatus.Active,
+                    automaticTransactionAmountText = "700 kg",
+                    automaticTransactionStatus = HarvestSeasonStatus.Active,
+                ),
             )
 
             CreateTransactionItem(
@@ -128,6 +165,7 @@ fun CreateTransactionWarning(
                 tint = iconTint
             )
             Text(
+                modifier = Modifier.weight(1f),
                 text = title,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = TextStyleBodyS,
@@ -185,6 +223,207 @@ fun CreateTransactionItem(
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Composable
+fun CreateTransactionVolumeItem(
+    modifier: Modifier = Modifier,
+    iconRes: Int,
+    title: String,
+    description: String,
+    harvestSeasonText: String?,
+    harvestSeasonStatus: HarvestSeasonStatus? = null,
+    onClick: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(16.dp),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            modifier = Modifier.size(24.dp),
+            painter = painterResource(id = iconRes),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = title,
+                style = TextStyleMediumM,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    modifier = if (harvestSeasonText == null) {
+                        Modifier.fillMaxWidth()
+                    } else {
+                        Modifier.weight(1f, fill = false)
+                    },
+                    text = description,
+                    style = TextStyleBodyS,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                harvestSeasonText?.let {
+                    HarvestSeasonTag(
+                        text = it,
+                        status = harvestSeasonStatus,
+                    )
+                }
+            }
+        }
+
+        Icon(
+            modifier = Modifier.size(24.dp),
+            painter = painterResource(id = R.drawable.ic_chevron_forward),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun CreateTransactionVolumeBreakdownItem(
+    modifier: Modifier = Modifier,
+    iconRes: Int,
+    title: String,
+    breakdown: CommodityVolumeBreakdown,
+    onClick: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(16.dp),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            modifier = Modifier.size(24.dp),
+            painter = painterResource(id = iconRes),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = title,
+                        style = TextStyleMediumM,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.sale_volume_breakdown_title),
+                        style = TextStyleBodyS,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            CreateTransactionVolumeBreakdownRow(
+                amountText = breakdown.harvestSeasonAmountText,
+                labelText = stringResource(
+                    R.string.sale_volume_breakdown_from_season,
+                    breakdown.harvestSeasonText,
+                ),
+                status = breakdown.harvestSeasonStatus,
+            )
+
+            CreateTransactionVolumeBreakdownRow(
+                amountText = breakdown.automaticTransactionAmountText,
+                labelText = stringResource(R.string.sale_volume_breakdown_auto_transaction),
+                status = breakdown.automaticTransactionStatus,
+                showWarningIcon = true,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CreateTransactionVolumeBreakdownRow(
+    amountText: String,
+    labelText: String,
+    status: HarvestSeasonStatus?,
+    showWarningIcon: Boolean = false,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = amountText,
+                style = TextStyleMediumS,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            Text(
+                modifier = Modifier.weight(1f, fill = false),
+                text = labelText,
+                style = TextStyleBodyS,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            if (showWarningIcon) {
+                Icon(
+                    modifier = Modifier.size(16.dp),
+                    painter = painterResource(id = R.drawable.ic_warning),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                )
+            }
+        }
+
+        status?.let {
+            HarvestSeasonStatusBadge(status = it)
+        }
     }
 }
 

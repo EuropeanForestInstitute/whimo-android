@@ -119,6 +119,7 @@ fun QrScanScreen(
         Toolbar2(
             navController = navController,
             title = stringResource(R.string.scan_qr),
+            showOfflineBanner = false,
         )
 
         if (cameraAvailable) {

@@ -26,6 +26,7 @@ import com.whimo.base.CoreViewBinding
 import com.whimo.base.CoreViewEvent
 import com.whimo.base.CoreViewSideEffect
 import com.whimo.domain.createtransaction.models.CreateTransactionModel
+import com.whimo.domain.harvestseasons.models.HarvestSeasonStatus
 
 object CreateTransactionFormContract {
     data class Binding(
@@ -34,13 +35,25 @@ object CreateTransactionFormContract {
         var farmGeoDataText: String = "Tap to add data",
         var commodityTypeText: String = "Tap to add data",
         var commodityVolumeText: String = "Tap to add data",
+        var commodityVolumeBreakdown: CommodityVolumeBreakdown? = null,
+        var commodityVolumeHarvestSeasonText: String? = null,
+        var commodityVolumeHarvestSeasonStatus: HarvestSeasonStatus? = null,
         var userInfoVisible: Boolean = true,
         var userInfoTitle: String = "Supplier info",
         var userInfoText: String = "Tap to add data",
         var inviteUserVisible: Boolean = true,
         var inviteUserText: String = "Tap to invite a user to WHIMO",
         var buttonEnabled: Boolean = false,
+        var isTestEnvironmentEnabled: Boolean = false,
     ) : CoreViewBinding
+
+    data class CommodityVolumeBreakdown(
+        val harvestSeasonAmountText: String,
+        val harvestSeasonText: String,
+        val harvestSeasonStatus: HarvestSeasonStatus?,
+        val automaticTransactionAmountText: String,
+        val automaticTransactionStatus: HarvestSeasonStatus?,
+    )
 
     sealed class Event : CoreViewEvent {
         data class OnCreate(val context: Context, val transaction: CreateTransactionModel) : Event()

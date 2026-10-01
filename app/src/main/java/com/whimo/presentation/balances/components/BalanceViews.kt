@@ -30,10 +30,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,15 +44,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.whimo.R
 import com.whimo.domain.commodity.models.CommodityGroupModel
 import com.whimo.domain.commodity.models.CommodityModel
+import com.whimo.domain.transactions.models.HarvestSeasonModel
+import com.whimo.domain.transactions.models.HarvestSeasonStatus
+import com.whimo.domain.transactions.models.TraceabilityStatus
+import com.whimo.domain.transactions.models.getShortName
+import com.whimo.presentation.balances.BalanceCommodityItemModel
 import com.whimo.presentation.createtransaction.components.DashedDivider
 import com.whimo.presentation.createtransaction.components.LineDivider
+import com.whimo.presentation.main.components.HarvestSeasonTag
+import com.whimo.presentation.main.components.TraceabilityStatusView
 import com.whimo.presentation.ui.theme.ColorGray40
 import com.whimo.presentation.ui.theme.TextStyleBodyS
+import com.whimo.presentation.ui.theme.TextStyleMediumM
 import com.whimo.presentation.ui.theme.TextStyleMediumS
 import com.whimo.presentation.ui.theme.WhimoTheme
 
@@ -133,7 +145,7 @@ private fun Preview() {
                 ),
                 CommodityModel(
                     id = "",
-                    code = "1806",
+                    code = "180612",
                     name = "Chocolate and other food preparations containing cocoa",
                     unit = "kg",
                     hasRecipe = false,
@@ -171,9 +183,23 @@ private fun Preview() {
                 modifier = Modifier.wrapContentHeight(),
                 sections = sampleData
             )
-            CommodityBalancesList(
+            BalanceCommodityList(
                 modifier = Modifier.wrapContentHeight(),
-                commodities = sampleData[1].commodities!!
+                items = sampleData[1].commodities!!.mapIndexed { index, commodity ->
+                    BalanceCommodityItemModel(
+                        commodity = commodity,
+                        harvestSeason = HarvestSeasonModel(
+                            id = "$index",
+                            name = "Harvest season 2026/27",
+                            status = HarvestSeasonStatus.Active,
+                        ),
+                        traceabilityStatus = when (index % 3) {
+                            0 -> TraceabilityStatus.Full
+                            1 -> TraceabilityStatus.Partial
+                            else -> TraceabilityStatus.Conditional
+                        },
+                    )
+                }
             )
         }
     }
@@ -201,22 +227,24 @@ fun CommodityGroupList(
 }
 
 @Composable
-fun CommodityBalancesList(
+fun BalanceCommodityList(
     modifier: Modifier = Modifier,
     networkAvailable: Boolean = true,
-    commodities: List<CommodityModel>,
-    onSelect: (CommodityModel) -> Unit = {},
+    items: List<BalanceCommodityItemModel>,
+    onBalanceClick: (BalanceCommodityItemModel) -> Unit = {},
+    onConvertClick: (CommodityModel) -> Unit = {},
 ) {
-    val size = commodities.size
+    val size = items.size
 
     LazyColumn(
         modifier = modifier,
     ) {
-        itemsIndexed(commodities) { index, commodity ->
-            CommodityItem(
+        itemsIndexed(items) { index, item ->
+            BalanceCommodityItem(
                 isEnabled = networkAvailable,
-                commodity = commodity,
-                onSelect = { onSelect(commodity) }
+                item = item,
+                onClick = { onBalanceClick(item) },
+                onConvertClick = { onConvertClick(item.commodity) },
             )
 
             if (index < size - 1) {
@@ -226,6 +254,21 @@ fun CommodityBalancesList(
             }
         }
     }
+}
+
+@Composable
+fun CommodityBalancesList(
+    modifier: Modifier = Modifier,
+    networkAvailable: Boolean = true,
+    commodities: List<CommodityModel>,
+    onSelect: (CommodityModel) -> Unit = {},
+) {
+    BalanceCommodityList(
+        modifier = modifier,
+        networkAvailable = networkAvailable,
+        items = commodities.map { BalanceCommodityItemModel(commodity = it) },
+        onConvertClick = onSelect,
+    )
 }
 
 @Composable
@@ -279,6 +322,97 @@ fun CommoditySectionItem(
             contentDescription = null,
             tint = ColorGray40,
         )
+    }
+}
+
+@Composable
+fun BalanceCommodityItem(
+    isEnabled: Boolean = true,
+    item: BalanceCommodityItemModel,
+    onClick: () -> Unit,
+    onConvertClick: () -> Unit,
+) {
+    val commodity = item.commodity
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .background(color = MaterialTheme.colorScheme.surface)
+            .padding(16.dp),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            modifier = Modifier.width(40.dp),
+            text = commodity.code,
+            style = TextStyleBodyS,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = commodity.name,
+                    style = TextStyleMediumM,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Text(
+                    text = commodity.getBalanceText(),
+                    style = TextStyleMediumM,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            if (item.harvestSeason != null || item.traceabilityStatus != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    item.harvestSeason?.let { season ->
+                        HarvestSeasonTag(
+                            text = season.getShortName(),
+                            status = season.status,
+                        )
+                    }
+
+                    item.traceabilityStatus?.let { status ->
+                        TraceabilityStatusView(status = status, shortName = true)
+                    }
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .size(24.dp)
+                .alpha(if (isEnabled) 1f else 0.5f),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (commodity.hasRecipe) {
+                Icon(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable(isEnabled) { onConvertClick() },
+                    painter = painterResource(id = R.drawable.ic_convert),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
     }
 }
 

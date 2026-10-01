@@ -22,12 +22,18 @@
 package com.whimo.data.commodity.model.mappers
 
 import com.google.gson.reflect.TypeToken
+import com.whimo.data.commodity.model.entity.CommodityBalanceEntity
 import com.whimo.data.commodity.model.entity.CommodityGroupEntity
 import com.whimo.data.commodity.model.response.CommoditiesGroupsResponse
 import com.whimo.data.commodity.model.response.Commodity
+import com.whimo.data.commodity.model.response.CommodityBalance
+import com.whimo.data.commodity.model.response.CommodityBalancesResponse
 import com.whimo.data.commodity.model.response.CommodityGroup
+import com.whimo.data.harvestseasons.model.mappers.toDomainOrNull
+import com.whimo.domain.commodity.models.CommodityBalanceModel
 import com.whimo.domain.commodity.models.CommodityGroupModel
 import com.whimo.domain.commodity.models.CommodityModel
+import com.whimo.domain.transactions.models.TraceabilityStatus
 import com.whimo.utils.gson
 
 fun CommoditiesGroupsResponse.toDomain(): List<CommodityGroupModel> {
@@ -52,6 +58,35 @@ fun Commodity.toDomain(): CommodityModel {
         group = group?.toDomain(),
         balance = balance,
     )
+}
+
+fun CommodityBalancesResponse.toBalanceDomain(): List<CommodityBalanceModel> {
+    return data.map { it.toDomain() }
+}
+
+fun CommodityBalance.toDomain(): CommodityBalanceModel {
+    return CommodityBalanceModel(
+        id = id,
+        volume = volume,
+        commodity = commodity.toDomain().copy(
+            balance = volume,
+            hasRecipe = has_recipe,
+        ),
+        harvestSeason = harvest_season?.toDomainOrNull(),
+        hasRecipe = has_recipe,
+        traceabilityStatus = TraceabilityStatus.entries.find { it.statusName == traceability },
+    )
+}
+
+fun CommodityBalanceModel.toEntity(): CommodityBalanceEntity {
+    return CommodityBalanceEntity(
+        id = id,
+        dataJson = gson.toJson(this),
+    )
+}
+
+fun CommodityBalanceEntity.toDomain(): CommodityBalanceModel {
+    return gson.fromJson(dataJson, CommodityBalanceModel::class.java)
 }
 
 fun CommodityGroupModel.toEntity(): CommodityGroupEntity {

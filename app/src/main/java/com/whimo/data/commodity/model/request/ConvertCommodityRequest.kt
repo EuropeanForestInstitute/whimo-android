@@ -23,6 +23,7 @@ package com.whimo.data.commodity.model.request
 
 data class ConvertCommodityRequest(
     val recipe_id: String,
+    val harvest_season_id: String?,
     val input_overrides: List<ConvertQuantityRequest>,
     val output_overrides: List<ConvertQuantityRequest>,
 )

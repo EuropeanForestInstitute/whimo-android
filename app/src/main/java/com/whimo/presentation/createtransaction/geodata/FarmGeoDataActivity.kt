@@ -47,6 +47,7 @@ import com.whimo.navigation.Screens
 import com.whimo.navigation.navgraphs.FarmGeoDataNavGraph
 import com.whimo.network.authenticator.SessionManager
 import com.whimo.presentation.auth.AuthActivity
+import com.whimo.presentation.ui.components.TestEnvironmentFrame
 import com.whimo.presentation.ui.theme.WhimoTheme
 import org.koin.android.ext.android.inject
 
@@ -89,13 +90,15 @@ class FarmGeoDataActivity : ComponentActivity(), OnBackPressedDispatcherOwner {
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.surfaceVariant,
                     ) {
-                        FarmGeoDataNavGraph(
-                            modifier = Modifier,
-                            navController = navController,
-                            startDestination = startDestination,
-                            transactionModel = transactionModel,
-                            createTransactionModel = createTransactionModel,
-                        )
+                        TestEnvironmentFrame(modifier = Modifier.fillMaxSize()) {
+                            FarmGeoDataNavGraph(
+                                modifier = Modifier,
+                                navController = navController,
+                                startDestination = startDestination,
+                                transactionModel = transactionModel,
+                                createTransactionModel = createTransactionModel,
+                            )
+                        }
                     }
                 }
             }

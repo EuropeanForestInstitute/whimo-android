@@ -28,6 +28,7 @@ import com.whimo.R
 import com.whimo.domain.commodity.models.CommodityGroupModel
 import com.whimo.domain.commodity.models.CommodityModel
 import com.whimo.domain.createtransaction.models.LocationProvider
+import com.whimo.domain.harvestseasons.models.getYearRangeText
 import com.whimo.presentation.ui.theme.ColorBerryBlue
 import com.whimo.presentation.ui.theme.ColorError
 import com.whimo.presentation.ui.theme.ColorGray10
@@ -40,8 +41,12 @@ import com.whimo.presentation.ui.theme.ColorLightOrange
 import com.whimo.presentation.ui.theme.ColorLightRed
 import com.whimo.presentation.ui.theme.ColorSuccess
 import com.whimo.presentation.ui.theme.ColorWarning
+import com.whimo.extensions.toQuantityText
 import kotlinx.parcelize.Parcelize
 import java.time.LocalDateTime
+
+typealias HarvestSeasonModel = com.whimo.domain.harvestseasons.models.HarvestSeasonModel
+typealias HarvestSeasonStatus = com.whimo.domain.harvestseasons.models.HarvestSeasonStatus
 
 data class BaseModel(
     val success: Boolean,
@@ -67,6 +72,7 @@ data class TransactionModel(
     val isBuyingFromFarmer: Boolean,
     val isAutomatic: Boolean,
     val createdById: String?,
+    val harvestSeason: HarvestSeasonModel? = null,
 ) : Parcelable
 
 @Parcelize
@@ -87,6 +93,7 @@ data class TraceabilityCountsModel(
 enum class TransactionType(val typeName: String) {
     Producer("producer"),
     Downstream("downstream"),
+    Conversion("conversion"),
 }
 
 enum class TransactionAction(val actionName: String) {
@@ -122,9 +129,10 @@ data class TransactionsFilter(
     var dateStart: LocalDateTime? = null,
     var dateEnd: LocalDateTime? = null,
     var commodityGroup: CommodityGroupModel? = null,
+    var commodity: CommodityModel? = null,
     var user: UserModel? = null,
+    var harvestSeason: HarvestSeasonModel? = null,
 )
-
 fun TransactionsFilter.allFieldsNull(): Boolean {
     return query == null &&
             status == null &&
@@ -132,15 +140,16 @@ fun TransactionsFilter.allFieldsNull(): Boolean {
             dateStart == null &&
             dateEnd == null &&
             commodityGroup == null &&
-            user == null
+            commodity == null &&
+            user == null &&
+            harvestSeason == null
 }
-
 fun TransactionModel.getCommodityText(): String {
     return "${commodity.code} ${commodity.name}"
 }
 
 fun TransactionModel.getCommodityVolumeText(): String {
-    return "$volume ${commodity.unit}"
+    return "${volume.toQuantityText()} ${commodity.unit}"
 }
 
 fun TransactionModel.getCommodityFullText(): String {
@@ -149,6 +158,14 @@ fun TransactionModel.getCommodityFullText(): String {
 
 fun TransactionModel.getCommodityShortText(): String {
     return "${commodity.group?.name}, ${getCommodityVolumeText()}"
+}
+
+fun HarvestSeasonModel.getShortName(): String {
+    if (startDate != null || endDate != null) {
+        return getYearRangeText()
+    }
+
+    return name.removePrefix("Harvest season").trim().ifBlank { name }
 }
 
 fun UserModel.getAccountText(): String {

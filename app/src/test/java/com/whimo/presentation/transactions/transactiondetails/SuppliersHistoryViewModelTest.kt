@@ -32,6 +32,8 @@ import com.whimo.domain.commodity.models.CommodityModel
 import com.whimo.domain.createtransaction.models.LocationProvider
 import com.whimo.domain.geodata.GeoDataInteractor
 import com.whimo.domain.geodata.models.DownloadGeoDataModel
+import com.whimo.domain.harvestseasons.models.HarvestSeasonModel
+import com.whimo.domain.harvestseasons.models.HarvestSeasonStatus
 import com.whimo.domain.transactions.TransactionsInteractor
 import com.whimo.domain.transactions.models.BaseModel
 import com.whimo.domain.transactions.models.TraceabilityStatus
@@ -60,6 +62,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -118,9 +121,37 @@ class SuppliersHistoryViewModelTest {
         assertEquals(createdDate, transactionsInteractor.refreshedDateEnd)
     }
 
+    @Test
+    fun `onCreate refreshes supplier history with transaction harvest season`() = runTest {
+        viewModel.handleEvents(
+            SuppliersHistoryContract.Event.OnCreate(
+                transactionModel = transaction(harvestSeason = harvestSeason),
+            )
+        )
+        advanceUntilIdle()
+
+        assertEquals(harvestSeason.id, transactionsInteractor.refreshedHarvestSeasonId)
+    }
+
+    @Test
+    fun `next page keeps supplier history harvest season`() = runTest {
+        viewModel.handleEvents(
+            SuppliersHistoryContract.Event.OnCreate(
+                transactionModel = transaction(harvestSeason = harvestSeason),
+            )
+        )
+        advanceUntilIdle()
+
+        viewModel.handleEvents(SuppliersHistoryContract.Event.NextPage)
+        advanceUntilIdle()
+
+        assertEquals(harvestSeason.id, transactionsInteractor.nextPageHarvestSeasonId)
+    }
+
     private fun transaction(
         createdDate: LocalDateTime = LocalDateTime.of(2025, 2, 3, 10, 0, 0),
         updatedDate: LocalDateTime? = LocalDateTime.of(2025, 2, 3, 12, 30, 45),
+        harvestSeason: HarvestSeasonModel? = null,
     ) = TransactionModel(
         id = "transaction-id",
         createdDate = createdDate,
@@ -151,17 +182,23 @@ class SuppliersHistoryViewModelTest {
         isBuyingFromFarmer = false,
         isAutomatic = false,
         createdById = "creator-id",
+        harvestSeason = harvestSeason,
     )
 
     private class TestTransactionsInteractor : TransactionsInteractor {
         override val stateFlow: SharedFlow<TransactionsState> = MutableSharedFlow()
         var refreshedDateEnd: LocalDateTime? = null
+        var refreshedHarvestSeasonId: String? = null
+        var nextPageHarvestSeasonId: String? = null
 
         override suspend fun refresh(filter: TransactionsFilter, useCache: Boolean) {
             refreshedDateEnd = filter.dateEnd
+            refreshedHarvestSeasonId = filter.harvestSeason?.id
         }
 
-        override suspend fun loadNextPage(filter: TransactionsFilter) = Unit
+        override suspend fun loadNextPage(filter: TransactionsFilter) {
+            nextPageHarvestSeasonId = filter.harvestSeason?.id
+        }
     }
 
     private class TestGeoDataInteractor : GeoDataInteractor {
@@ -219,5 +256,15 @@ class SuppliersHistoryViewModelTest {
         override fun cacheDir(): File {
             throw NotImplementedError()
         }
+    }
+
+    companion object {
+        private val harvestSeason = HarvestSeasonModel(
+            id = "harvest-season-id",
+            name = "Harvest season 2025/26",
+            startDate = LocalDate.of(2025, 9, 1),
+            endDate = LocalDate.of(2026, 9, 1),
+            status = HarvestSeasonStatus.Active,
+        )
     }
 }

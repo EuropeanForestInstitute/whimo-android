@@ -43,6 +43,7 @@ interface  CreateTransactionService {
         @Part file: MultipartBody.Part?,
         @Part("is_buying_from_farmer") isBuyingFromFarmer: RequestBody?,
         @Part("recipient") recipient: RequestBody?,
+        @Part("harvest_season_id") harvestSeasonId: RequestBody?,
     ): Response<CreateTransactionResponse>
 
     @Multipart
@@ -54,5 +55,6 @@ interface  CreateTransactionService {
         @Part("transaction_longitude") transactionLongitude: RequestBody?,
         @Part("action") action: RequestBody?,
         @Part("recipient") recipient: RequestBody?,
+        @Part("harvest_season_id") harvestSeasonId: RequestBody?,
     ): Response<CreateTransactionResponse>
 }

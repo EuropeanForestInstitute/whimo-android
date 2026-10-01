@@ -64,11 +64,14 @@ val transactionsModule = module {
             boughtTabInteractor = get(),
             soldTabInteractor = get(),
             createTransactionInteractor = get(),
+            harvestSeasonsInteractor = get(),
+            commodityInteractor = get(),
         )
     }
     viewModel {
         TransactionDetailsViewModel(
             interactor = get(),
+            commodityInteractor = get(),
             geoDataInteractor = get(),
             resourceProvider = get(),
             errorHandler = get(),

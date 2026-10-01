@@ -29,6 +29,7 @@ import com.whimo.data.commodity.repository.ConvertCommodityRepository
 import com.whimo.domain.commodity.models.CommodityModel
 import com.whimo.domain.commodity.models.ConvertQuantityModel
 import com.whimo.domain.commodity.models.ConvertRecipeModel
+import com.whimo.domain.harvestseasons.models.HarvestSeasonModel
 import com.whimo.domain.transactions.models.BaseModel
 import com.whimo.network.mapResult
 
@@ -41,6 +42,7 @@ interface ConvertCommodityInteractor {
         recipeId: String,
         inputs: List<ConvertQuantityModel>,
         outputs: List<ConvertQuantityModel>,
+        harvestSeason: HarvestSeasonModel? = null,
     ): BaseResult<BaseModel>
 }
 
@@ -83,10 +85,12 @@ class ConvertCommodityInteractorImpl(
         recipeId: String,
         inputs: List<ConvertQuantityModel>,
         outputs: List<ConvertQuantityModel>,
+        harvestSeason: HarvestSeasonModel?,
     ): BaseResult<BaseModel> {
         return repository.convertCommodity(
             ConvertCommodityRequest(
                 recipe_id = recipeId,
+                harvest_season_id = harvestSeason?.id,
                 input_overrides = inputs.map {
                     ConvertQuantityRequest(
                         commodity_id = it.commodity.id,

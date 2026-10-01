@@ -38,12 +38,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.whimo.domain.commodity.models.CommodityGroupModel
-import com.whimo.domain.transactions.models.TransactionAction
+import com.whimo.domain.commodity.models.CommodityModel
 import com.whimo.extensions.getParcelableCompatExtra
 import com.whimo.navigation.navgraphs.CommodityBalancesNavGraph
 import com.whimo.network.authenticator.SessionManager
 import com.whimo.presentation.auth.AuthActivity
+import com.whimo.presentation.ui.components.TestEnvironmentFrame
 import com.whimo.presentation.ui.theme.WhimoTheme
+import com.whimo.utils.fromJsonArgs
+import com.whimo.utils.toJsonArgs
 import org.koin.android.ext.android.inject
 
 class CommodityGroupBalancesActivity : ComponentActivity(), OnBackPressedDispatcherOwner {
@@ -54,10 +57,13 @@ class CommodityGroupBalancesActivity : ComponentActivity(), OnBackPressedDispatc
         super.onCreate(savedInstanceState)
 
         val commodityGroup = intent.getParcelableCompatExtra<CommodityGroupModel>(COMMODITY_GROUP)
+        val balanceDetailsArgs = intent
+            .getStringExtra(BALANCE_DETAILS_ARGS)
+            ?.fromJsonArgs<BalanceDetailsArgs>()
+        val convertCommodity = intent.getParcelableCompatExtra<CommodityModel>(CONVERT_COMMODITY)
 
         setContent {
             val navController = rememberNavController()
-
             WhimoTheme {
                 Scaffold(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -68,11 +74,15 @@ class CommodityGroupBalancesActivity : ComponentActivity(), OnBackPressedDispatc
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.surfaceVariant,
                     ) {
-                        CommodityBalancesNavGraph(
-                            modifier = Modifier,
-                            navController = navController,
-                            commodityGroup = commodityGroup,
-                        )
+                        TestEnvironmentFrame(modifier = Modifier.fillMaxSize()) {
+                            CommodityBalancesNavGraph(
+                                modifier = Modifier,
+                                navController = navController,
+                                commodityGroup = commodityGroup,
+                                balanceDetailsArgs = balanceDetailsArgs,
+                                convertCommodity = convertCommodity,
+                            )
+                        }
                     }
                 }
             }
@@ -88,10 +98,36 @@ class CommodityGroupBalancesActivity : ComponentActivity(), OnBackPressedDispatc
 
     companion object {
         private const val COMMODITY_GROUP = "commodity_group"
+        private const val BALANCE_DETAILS_ARGS = "balance_details_args"
+        private const val CONVERT_COMMODITY = "convert_commodity"
 
-        fun openCommodityGroupBalances(context: Context, launcher: ManagedActivityResultLauncher<Intent, ActivityResult>, commodityGroupModel: CommodityGroupModel) {
+        fun openCommodityGroupBalances(
+            context: Context,
+            launcher: ManagedActivityResultLauncher<Intent, ActivityResult>,
+            commodityGroupModel: CommodityGroupModel,
+        ) {
             val intent = Intent(context, CommodityGroupBalancesActivity::class.java)
             intent.putExtra(COMMODITY_GROUP, commodityGroupModel)
+            launcher.launch(intent)
+        }
+
+        fun openBalanceDetails(
+            context: Context,
+            launcher: ManagedActivityResultLauncher<Intent, ActivityResult>,
+            args: BalanceDetailsArgs,
+        ) {
+            val intent = Intent(context, CommodityGroupBalancesActivity::class.java)
+            intent.putExtra(BALANCE_DETAILS_ARGS, args.toJsonArgs())
+            launcher.launch(intent)
+        }
+
+        fun openConvertRecipes(
+            context: Context,
+            launcher: ManagedActivityResultLauncher<Intent, ActivityResult>,
+            commodityModel: CommodityModel,
+        ) {
+            val intent = Intent(context, CommodityGroupBalancesActivity::class.java)
+            intent.putExtra(CONVERT_COMMODITY, commodityModel)
             launcher.launch(intent)
         }
     }

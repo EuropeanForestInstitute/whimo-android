@@ -31,6 +31,7 @@ import com.whimo.domain.createtransaction.models.CreateTransactionModel
 import com.whimo.domain.createtransaction.models.LocationProvider
 import com.whimo.domain.createtransaction.models.MFile
 import com.whimo.domain.createtransaction.models.UserInfoModel
+import com.whimo.domain.harvestseasons.models.HarvestSeasonModel
 import com.whimo.domain.transactions.models.TransactionAction
 
 class SharedTransactionViewModel : ViewModel() {
@@ -110,8 +111,28 @@ class SharedTransactionViewModel : ViewModel() {
         transaction = transaction.copy(volume = volume)
     }
 
+    fun setCommodityVolume(
+        volume: Float?,
+        harvestSeason: HarvestSeasonModel?,
+        commodity: CommodityModel?,
+    ) {
+        transaction = transaction.copy(
+            commodity = commodity ?: transaction.commodity,
+            volume = volume,
+            harvestSeason = harvestSeason,
+        )
+    }
+
     fun setCommodity(commodity: CommodityModel?) {
-        transaction = transaction.copy(commodity = commodity)
+        transaction = if (transaction.commodity?.id == commodity?.id) {
+            transaction.copy(commodity = commodity)
+        } else {
+            transaction.copy(
+                commodity = commodity,
+                volume = null,
+                harvestSeason = null,
+            )
+        }
     }
 
     fun setUserInfo(userInfo: UserInfoModel?) {

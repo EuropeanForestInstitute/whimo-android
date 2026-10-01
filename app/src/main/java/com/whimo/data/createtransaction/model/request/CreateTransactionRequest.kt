@@ -35,14 +35,15 @@ data class CreateProducerTransactionRequest(
     val transactionLatitude: Double?,
     val transactionLongitude: Double?,
     val recipient: String?,
+    val harvestSeasonId: String?,
 )
 
 data class CreateDownstreamTransactionRequest(
     val commodityId: String?,
     val volume: Float?,
-    val locationProvider: String?,
     val transactionLatitude: Double?,
     val transactionLongitude: Double?,
     val action: String?,
     val recipient: String?,
+    val harvestSeasonId: String?,
 )

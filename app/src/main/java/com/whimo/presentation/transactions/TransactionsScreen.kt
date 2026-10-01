@@ -34,6 +34,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -50,6 +52,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDateRangePickerState
@@ -64,6 +67,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -77,18 +82,22 @@ import androidx.navigation.compose.rememberNavController
 import com.whimo.R
 import com.whimo.base.ObserveEffects
 import com.whimo.domain.createtransaction.models.PendingTransactionModel
+import com.whimo.domain.createtransaction.models.PendingTransactionsSyncProgress
 import com.whimo.domain.createtransaction.models.getCommodityShortText
 import com.whimo.domain.transactions.models.TransactionAction
 import com.whimo.domain.transactions.models.TransactionModel
 import com.whimo.domain.transactions.models.TransactionType
 import com.whimo.domain.transactions.models.TransactionsState
 import com.whimo.domain.transactions.models.getCommodityShortText
+import com.whimo.domain.transactions.models.getShortName
 import com.whimo.extensions.millisToLocalDateTime
 import com.whimo.extensions.toFormattedDateString
 import com.whimo.extensions.toShortFormattedDateString
 import com.whimo.navigation.Screens
 import com.whimo.presentation.createtransaction.geodata.FarmGeoDataActivity
 import com.whimo.presentation.main.components.EmptyState
+import com.whimo.presentation.main.components.HarvestSeasonFilterBottomSheet
+import com.whimo.presentation.main.components.HarvestSeasonFilterChip
 import com.whimo.presentation.main.components.SearchFilterBar
 import com.whimo.presentation.main.components.TabBar
 import com.whimo.presentation.main.components.TabItem
@@ -99,7 +108,9 @@ import com.whimo.presentation.settings.components.DialogButtonsItem
 import com.whimo.presentation.transactions.transactiondetails.TransactionDetailsActivity
 import com.whimo.presentation.transactions.transactiondetails.components.BaseDialog
 import com.whimo.presentation.ui.baseScreen.MainIconButton
+import com.whimo.presentation.ui.components.rememberNetworkAvailable
 import com.whimo.presentation.ui.theme.TextStyleBodyS
+import com.whimo.presentation.ui.theme.TextStyleH2
 import com.whimo.presentation.ui.theme.TextStyleMediumM
 import com.whimo.presentation.ui.theme.WhimoTheme
 import com.whimo.utils.getResult
@@ -136,6 +147,7 @@ fun TransactionsScreen(
 
     val binding = viewModel?.observeViewBinding() ?: TransactionsContract.Binding()
     val context = LocalContext.current
+    val networkAvailable = rememberNetworkAvailable()
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
@@ -166,6 +178,10 @@ fun TransactionsScreen(
         viewModel?.setEvent(TransactionsContract.Event.OnCreate)
     }
 
+    LaunchedEffect(networkAvailable) {
+        viewModel?.setEvent(TransactionsContract.Event.NetworkAvailabilityChanged(networkAvailable))
+    }
+
     if (navController.getResult<Boolean>("createTransactionResult") == true) {
         viewModel?.setEvent(TransactionsContract.Event.Refresh(binding.currentTab))
     }
@@ -179,6 +195,7 @@ fun TransactionsScreen(
     }
 
     var showCalendar by remember { mutableStateOf(false) }
+    var showSeasonFilter by remember { mutableStateOf(false) }
     val datePickerState = rememberDateRangePickerState(
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
@@ -189,7 +206,6 @@ fun TransactionsScreen(
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Toolbar(
             title = stringResource(R.string.transactions_title),
@@ -198,18 +214,41 @@ fun TransactionsScreen(
             viewModel?.setEvent(TransactionsContract.Event.NotificationsClicked)
         }
 
+        val harvestSeasonFilterIsActive = binding.selectedCommodityGroup != null || binding.selectedHarvestSeason != null
+
         SearchFilterBar(
-            modifier = Modifier.padding(all = 16.dp),
+            modifier = Modifier.padding(
+                start = 16.dp,
+                top = 16.dp,
+                end = 16.dp,
+                bottom = if (harvestSeasonFilterIsActive) 8.dp else 16.dp,
+            ),
             query = binding.query ?: "",
 
-            filterIsActive = datePickerState.selectedStartDateMillis != null,
+            showDateFilter = true,
+            dateFilterIsActive = datePickerState.selectedStartDateMillis != null,
+            filterIsActive = harvestSeasonFilterIsActive,
             onSearch = {
                 viewModel?.setEvent(TransactionsContract.Event.QueryChanged(it))
             },
-            onFilterClick = {
+            onDateFilterClick = {
                 showCalendar = true
+            },
+            onFilterClick = {
+                showSeasonFilter = true
             }
         )
+
+        if (harvestSeasonFilterIsActive) {
+            HarvestSeasonFilterChip(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+                commodityGroup = binding.selectedCommodityGroup,
+                harvestSeason = binding.selectedHarvestSeason,
+                onClear = {
+                    viewModel?.setEvent(TransactionsContract.Event.HarvestSeasonFilterChanged(null, null))
+                },
+            )
+        }
 
         TabBar(
             pagerState = pagerState,
@@ -272,6 +311,30 @@ fun TransactionsScreen(
         }
     }
 
+    if (showSeasonFilter) {
+        HarvestSeasonFilterBottomSheet(
+            commodityGroups = binding.commodityGroups,
+            harvestSeasons = binding.harvestSeasons,
+            selectedCommodityGroup = binding.selectedCommodityGroup,
+            selectedSeason = binding.selectedHarvestSeason,
+            onCommodityGroupPreviewChanged = {
+                viewModel?.setEvent(TransactionsContract.Event.HarvestSeasonFilterCommodityGroupChanged(it))
+            },
+            onApply = { commodityGroup, harvestSeason ->
+                viewModel?.setEvent(
+                    TransactionsContract.Event.HarvestSeasonFilterChanged(
+                        commodityGroup = commodityGroup,
+                        harvestSeason = harvestSeason,
+                    )
+                )
+            },
+            onReset = {
+                viewModel?.setEvent(TransactionsContract.Event.HarvestSeasonFilterChanged(null, null))
+            },
+            onDismissRequest = { showSeasonFilter = false },
+        )
+    }
+
     if (showCalendar) {
         val startDate = datePickerState.selectedStartDateMillis?.millisToLocalDateTime()
         val endDate = datePickerState.selectedEndDateMillis?.millisToLocalDateTime()?.plusDays(1)?.minusSeconds(1)
@@ -330,6 +393,68 @@ fun TransactionsScreen(
                     showCalendar = false
                 },
             )
+        }
+    }
+
+    binding.pendingSyncProgress?.let { progress ->
+        PendingTransactionsSyncDialog(progress = progress)
+    }
+}
+
+@Composable
+private fun PendingTransactionsSyncDialog(
+    progress: PendingTransactionsSyncProgress,
+) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.scrim)
+                .padding(16.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    CircularProgressIndicator()
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = stringResource(R.string.offline_transactions_sync_title),
+                        style = TextStyleH2,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = stringResource(
+                            R.string.offline_transactions_sync_progress,
+                            progress.processedTransactions,
+                            progress.totalTransactions,
+                        ),
+                        style = TextStyleBodyS,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
         }
     }
 }
@@ -482,6 +607,8 @@ fun TransactionsList(
                 iconRes = icon,
                 title = it.getCommodityShortText(),
                 description = it.createdDate.toFormattedDateString(),
+                harvestSeasonText = it.harvestSeason?.getShortName(),
+                harvestSeasonStatus = it.harvestSeason?.status,
                 status = it.status,
                 showAddLocation = it.type == TransactionType.Producer && it.locationProvider == null,
                 onClick = { onTransactionClick(it) },

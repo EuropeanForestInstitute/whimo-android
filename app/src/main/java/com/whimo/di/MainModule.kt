@@ -33,6 +33,7 @@ val mainModule = module {
             settingsInteractor = get(),
             pushNotificationsInteractor = get(),
             commodityInteractor = get(),
+            harvestSeasonsInteractor = get(),
             notificationsRepository = get(),
         )
     }

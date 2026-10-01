@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.whimo.R
+import com.whimo.presentation.ui.theme.ColorGray20
 import com.whimo.presentation.ui.theme.ColorGray40
 import com.whimo.presentation.ui.theme.ColorGray50
 import com.whimo.presentation.ui.theme.TextStyleBodyS
@@ -86,12 +88,13 @@ fun SettingsItem(
     modifier: Modifier = Modifier,
     iconRes: Int,
     title: String,
+    isEnabled: Boolean = true,
     onClick: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable(enabled = isEnabled) { onClick() }
             .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -101,21 +104,53 @@ fun SettingsItem(
             modifier = Modifier.size(24.dp),
             painter = painterResource(id = iconRes),
             contentDescription = null,
-            tint = ColorGray50,
+            tint = if (isEnabled) ColorGray50 else ColorGray20,
         )
 
         Text(
             modifier = modifier.weight(1f),
             text = title,
             style = TextStyleButtonM,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = if (isEnabled) MaterialTheme.colorScheme.onSurface else ColorGray40,
         )
 
         Icon(
             modifier = Modifier.size(24.dp),
             painter = painterResource(id = R.drawable.ic_chevron_forward),
             contentDescription = null,
-            tint = ColorGray40,
+            tint = if (isEnabled) ColorGray40 else ColorGray20,
+        )
+    }
+}
+
+@Composable
+fun SettingsInfoItem(
+    modifier: Modifier = Modifier,
+    text: String,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.surfaceBright,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(
+            modifier = Modifier.size(24.dp),
+            painter = painterResource(id = R.drawable.ic_information),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+        )
+
+        Text(
+            modifier = Modifier.weight(1f),
+            text = text,
+            style = TextStyleBodyS,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -170,13 +205,14 @@ fun SettingsOptionItemBase(
     iconRes: Int,
     iconTint: Color = ColorGray50,
     title: String,
+    isEnabled: Boolean = true,
     onClick: () -> Unit = {},
     endContent: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable(enabled = isEnabled) { onClick() }
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -186,14 +222,14 @@ fun SettingsOptionItemBase(
             modifier = Modifier.size(24.dp),
             painter = painterResource(id = iconRes),
             contentDescription = null,
-            tint = iconTint,
+            tint = if (isEnabled) iconTint else ColorGray20,
         )
 
         Text(
             modifier = Modifier.weight(1f),
             text = title,
             style = TextStyleBodyS,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = if (isEnabled) MaterialTheme.colorScheme.onSurface else ColorGray40,
         )
 
         endContent()

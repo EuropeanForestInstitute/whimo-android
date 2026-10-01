@@ -26,13 +26,17 @@ import com.whimo.base.BaseViewModel
 import com.whimo.base.CoreViewEvent
 import com.whimo.data.base.common.onError
 import com.whimo.data.base.common.onSuccess
+import com.whimo.domain.createtransaction.CreateTransactionInteractor
 import com.whimo.domain.settings.SettingsInteractor
 import com.whimo.network.ErrorHandler
 import com.whimo.providers.ResourceProvider
+import com.whimo.providers.TestEnvironmentManager
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val interactor: SettingsInteractor,
+    private val createTransactionInteractor: CreateTransactionInteractor,
+    private val testEnvironmentManager: TestEnvironmentManager,
     private val errorHandler: ErrorHandler,
     private val resourceProvider: ResourceProvider,
 ) : BaseViewModel<SettingsContract.Binding>() {
@@ -44,6 +48,8 @@ class SettingsViewModel(
     override fun handleEvents(event: CoreViewEvent) {
         super.handleEvents(event)
         when (event) {
+            is SettingsContract.Event.OnCreate -> updateView()
+            is SettingsContract.Event.TestEnvironmentChanged -> onTestEnvironmentChanged(event.isEnabled)
             is SettingsContract.Event.Logout -> logout()
             is SettingsContract.Event.DeleteAccount -> deleteAccount()
         }
@@ -51,6 +57,37 @@ class SettingsViewModel(
 
     override fun copyBinding(binding: SettingsContract.Binding): SettingsContract.Binding {
         return binding.copy()
+    }
+
+    private fun updateView() {
+        updateBinding { b ->
+            b.isTestEnvironmentEnabled = testEnvironmentManager.isTestEnvironmentEnabled()
+        }
+    }
+
+    private fun onTestEnvironmentChanged(isEnabled: Boolean) {
+        if (isEnabled == testEnvironmentManager.isTestEnvironmentEnabled()) {
+            return
+        }
+
+        launch {
+            if (isEnabled && createTransactionInteractor.getPendingTransactions().isNotEmpty()) {
+                setEffect(SettingsContract.Effect.ShowUnsyncedChangesDialog)
+                updateView()
+                return@launch
+            }
+
+            if (!isEnabled) {
+                createTransactionInteractor.clearPendingTransactions()
+            }
+
+            testEnvironmentManager.setTestEnvironmentEnabled(isEnabled)
+            updateView()
+
+            if (isEnabled) {
+                setEffect(SettingsContract.Effect.ShowEnteringTestEnvironmentDialog)
+            }
+        }
     }
 
     private fun logout() {

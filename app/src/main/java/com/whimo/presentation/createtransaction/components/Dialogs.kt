@@ -80,6 +80,11 @@ fun CreateTransactionMessage(
 fun CreateTransactionDialog(
     title: String,
     description: String,
+    warningDescription: String? = null,
+    warningIconRes: Int = R.drawable.ic_information,
+    warningBackgroundColor: Color = MaterialTheme.colorScheme.surfaceBright,
+    warningBorderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    warningIconTint: Color = MaterialTheme.colorScheme.primary,
     actionButtonTitle: String,
     secondButtonTitle: String,
     onActionClick: () -> Unit = {},
@@ -90,7 +95,24 @@ fun CreateTransactionDialog(
         title = title,
         onDismiss = onDismiss
     ) {
-        DialogTextItem(title = description)
+        Column(modifier = Modifier.fillMaxWidth()) {
+
+            DialogTextItem(title = description)
+
+            if (!warningDescription.isNullOrBlank()) {
+                CreateTransactionWarning(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = 16.dp),
+                    backgroundColor = warningBackgroundColor,
+                    borderColor = warningBorderColor,
+                    iconRes = warningIconRes,
+                    iconTint = warningIconTint,
+                    title = warningDescription,
+                )
+            }
+        }
 
         DialogButtonsItemV(
             actionButtonTitle = actionButtonTitle,

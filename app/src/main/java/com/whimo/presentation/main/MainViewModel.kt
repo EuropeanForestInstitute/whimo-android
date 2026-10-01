@@ -28,7 +28,10 @@ import com.whimo.data.base.common.onError
 import com.whimo.data.base.common.onSuccess
 import com.whimo.data.notifications.repository.NotificationsRepository
 import com.whimo.domain.commodity.CommodityInteractor
+import com.whimo.domain.commodity.models.CommodityBalanceFilter
 import com.whimo.domain.commodity.models.CommodityFilter
+import com.whimo.domain.harvestseasons.HarvestSeasonsInteractor
+import com.whimo.domain.harvestseasons.models.HarvestSeasonFilter
 import com.whimo.domain.notifications.PushNotificationsInteractor
 import com.whimo.domain.settings.SettingsInteractor
 import com.whimo.providers.SharedPreferencesProvider
@@ -38,6 +41,7 @@ class MainViewModel(
     private val settingsInteractor: SettingsInteractor,
     private val pushNotificationsInteractor: PushNotificationsInteractor,
     private val commodityInteractor: CommodityInteractor,
+    private val harvestSeasonsInteractor: HarvestSeasonsInteractor,
     private val notificationsRepository: NotificationsRepository,
 ) : BaseViewModel<MainContract.Binding>() {
 
@@ -62,6 +66,8 @@ class MainViewModel(
         updateAccountInfo()
         updateFCMToken()
         updateCommodities()
+        updateHarvestSeasons()
+        updateBalances()
     }
 
     private fun postNotificationPermissionChanged(isGranted: Boolean) {
@@ -131,6 +137,18 @@ class MainViewModel(
                         commodityInteractor.updateCommoditiesDB(it)
                     }
             }
+        }
+    }
+
+    private fun updateHarvestSeasons() {
+        launch {
+            harvestSeasonsInteractor.getHarvestSeasons(HarvestSeasonFilter())
+        }
+    }
+
+    private fun updateBalances() {
+        launch {
+            commodityInteractor.getBalances(CommodityBalanceFilter())
         }
     }
 }

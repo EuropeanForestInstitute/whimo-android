@@ -24,6 +24,7 @@ package com.whimo.data.transactions.model.mappers
 import com.google.android.gms.maps.model.LatLng
 import com.whimo.data.base.common.toDomain
 import com.whimo.data.commodity.model.mappers.toDomain
+import com.whimo.data.harvestseasons.model.mappers.toDomainOrNull
 import com.whimo.data.transactions.model.entity.TransactionEntity
 import com.whimo.data.transactions.model.response.BaseResponse
 import com.whimo.data.transactions.model.response.TransactionData
@@ -79,7 +80,7 @@ fun TransactionData.toDomain(): TransactionModel {
         status = status,
         action = TransactionAction.entries.find { it.actionName == action },
         locationProvider = LocationProvider.entries.find { it.providerName == location },
-        location = if (latitude != null && longitude != null) LatLng(latitude, longitude) else null,
+        location = getTransactionLocation(),
         commodity = commodity.toDomain(),
         volume = volume,
         traceability = TraceabilityStatus.entries.find { it.statusName == traceability },
@@ -87,8 +88,20 @@ fun TransactionData.toDomain(): TransactionModel {
         buyer = buyer?.toDomain(),
         isBuyingFromFarmer = is_buying_from_farmer,
         isAutomatic = is_automatic,
+        harvestSeason = harvest_season?.toDomainOrNull(),
         createdById = created_by_id,
     )
+}
+
+private fun TransactionData.getTransactionLocation(): LatLng? {
+    val latitudeValue = transaction_latitude ?: latitude ?: farm_latitude
+    val longitudeValue = transaction_longitude ?: longitude ?: farm_longitude
+
+    return if (latitudeValue != null && longitudeValue != null) {
+        LatLng(latitudeValue, longitudeValue)
+    } else {
+        null
+    }
 }
 
 fun User.toDomain(): UserModel {

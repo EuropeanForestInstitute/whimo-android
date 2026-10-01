@@ -45,6 +45,9 @@ interface SharedPreferencesProvider {
     fun getRefreshToken(): String?
     fun saveRefreshToken(value: String?)
 
+    fun isTestEnvironmentEnabled(): Boolean = false
+    fun setTestEnvironmentEnabled(isEnabled: Boolean) = Unit
+
     fun getAccount(): AccountModel?
     fun setAccount(account: AccountModel)
 
@@ -120,6 +123,14 @@ class SharedPreferencesProviderImpl(context: Context) : SharedPreferencesProvide
         saveString(REFRESH_TOKEN, value)
     }
 
+    override fun isTestEnvironmentEnabled(): Boolean {
+        return getBoolean(TEST_ENVIRONMENT_ENABLED_KEY, false)
+    }
+
+    override fun setTestEnvironmentEnabled(isEnabled: Boolean) {
+        saveBoolean(TEST_ENVIRONMENT_ENABLED_KEY, isEnabled)
+    }
+
 
     override fun getAccount(): AccountModel? {
         return getString(ACCOUNT_KEY)?.fromJsonArgs<AccountModel>()
@@ -153,5 +164,6 @@ class SharedPreferencesProviderImpl(context: Context) : SharedPreferencesProvide
         private const val ACCOUNT_KEY = "account_key"
         private const val FCM_TOKEN_KEY = "fcm_token_key"
         private const val NOTIFICATIONS_ALLOWED_KEY = "notifications_allowed_key"
+        private const val TEST_ENVIRONMENT_ENABLED_KEY = "test_environment_enabled_key"
     }
-} 
+}

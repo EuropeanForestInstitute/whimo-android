@@ -22,6 +22,8 @@
 package com.whimo.di
 
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.whimo.data.AppDatabase
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -29,7 +31,22 @@ import org.koin.dsl.module
 val dataBaseModule = module {
     single {
         Room.databaseBuilder(androidContext(), AppDatabase::class.java, "app_database")
+            .addMigrations(MIGRATION_6_7)
             .fallbackToDestructiveMigration(true)
             .build()
+    }
+}
+
+private val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `commodity_balances` (
+                `id` TEXT NOT NULL,
+                `dataJson` TEXT NOT NULL,
+                PRIMARY KEY(`id`)
+            )
+            """.trimIndent()
+        )
     }
 }

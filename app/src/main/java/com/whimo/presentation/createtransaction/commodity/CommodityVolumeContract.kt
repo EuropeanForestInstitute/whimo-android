@@ -24,27 +24,39 @@ package com.whimo.presentation.createtransaction.commodity
 import com.whimo.base.CoreViewBinding
 import com.whimo.base.CoreViewEvent
 import com.whimo.base.CoreViewSideEffect
+import com.whimo.domain.commodity.models.CommodityModel
 import com.whimo.domain.createtransaction.models.CreateTransactionModel
+import com.whimo.domain.harvestseasons.models.HarvestSeasonModel
 
 object CommodityVolumeContract {
     data class Binding(
         var query: String? = null,
         var volume: String? = null,
+        var selectedHarvestSeason: HarvestSeasonModel? = null,
+        var harvestSeasons: List<HarvestSeasonModel> = emptyList(),
+        var harvestSeasonSelectorVisible: Boolean = true,
+        var inputEnabled: Boolean = false,
         var supportingText: String = "",
         var warningText: String = "",
         var insufficientBalance: Boolean = false,
+        var insufficientBalanceMessage: String = "",
         var buttonEnabled: Boolean = false,
     ) : CoreViewBinding
 
     sealed class Event : CoreViewEvent {
         data class OnCreate(val transaction: CreateTransactionModel) : Event()
         data class OnVolumeChanged(val volume: String?) : Event()
+        data class OnHarvestSeasonSelected(val harvestSeason: HarvestSeasonModel) : Event()
         data object OnConfirm : Event()
     }
 
     sealed class Effect : CoreViewSideEffect {
         data class ToggleLoader(val isLoading: Boolean): Effect()
         data class ShowMessage(val message: String): Effect()
-        data class VolumeConfirmed(val volume: Float?): Effect()
+        data class VolumeConfirmed(
+            val volume: Float?,
+            val harvestSeason: HarvestSeasonModel?,
+            val commodity: CommodityModel?,
+        ): Effect()
     }
 }

@@ -26,6 +26,7 @@ import com.google.gson.JsonDeserializer
 import com.whimo.BuildConfig
 import com.whimo.data.geodata.model.response.DownloadGeoDataResponse
 import com.whimo.network.ErrorHandler
+import com.whimo.network.EnvironmentBaseUrlInterceptor
 import com.whimo.network.RequestHeadersInterceptor
 import com.whimo.network.authenticator.RefreshService
 import com.whimo.network.authenticator.SessionManager
@@ -53,6 +54,8 @@ val networkModule = module {
         }
     }
 
+    single { EnvironmentBaseUrlInterceptor(get()) }
+
     // OkHttpClient
     single(UNAUTHORISED) {
         OkHttpClient()
@@ -67,6 +70,7 @@ val networkModule = module {
     factory(AUTHORISED) {
         OkHttpClient()
             .newBuilder()
+            .addInterceptor(get<EnvironmentBaseUrlInterceptor>())
             .authenticator(TokenAuthenticator(get(), get()))
             .addInterceptor(RequestHeadersInterceptor(get(), get(), androidContext()))
             .addInterceptor(get<HttpLoggingInterceptor>())
@@ -117,5 +121,11 @@ val networkModule = module {
 
 
     single { get<Retrofit>(UNAUTHORISED).create(RefreshService::class.java) }
-    single { SessionManager(service = get(), sharedPreferencesProvider = get(), appDatabase = get()) }
+    single {
+        SessionManager(
+            refreshService = get(),
+            sharedPreferencesProvider = get(),
+            appDatabase = get(),
+        )
+    }
 }

@@ -33,10 +33,15 @@ import com.whimo.domain.createtransaction.models.getCommodityText
 import com.whimo.domain.createtransaction.models.getCommodityVolumeText
 import com.whimo.domain.createtransaction.models.getLocationText
 import com.whimo.domain.createtransaction.models.getUserInfoText
+import com.whimo.domain.harvestseasons.models.HarvestSeasonStatus
+import com.whimo.domain.harvestseasons.models.getYearRangeText
 import com.whimo.domain.transactions.models.TransactionAction
+import com.whimo.domain.transactions.models.getShortName
 import com.whimo.extensions.toLatLng
+import com.whimo.extensions.toQuantityText
 import com.whimo.network.ErrorHandler
 import com.whimo.providers.ResourceProvider
+import com.whimo.providers.TestEnvironmentManager
 import com.whimo.utils.checkLocationPermissionGranted
 import com.whimo.utils.getCurrentLocation
 
@@ -44,8 +49,10 @@ class CreateTransactionFormViewModel(
     private val resourceProvider: ResourceProvider,
     private val interactor: CreateTransactionInteractor,
     private val errorHandler: ErrorHandler,
+    private val testEnvironmentManager: TestEnvironmentManager,
 ) : BaseViewModel<CreateTransactionFormContract.Binding>() {
     private var transaction: CreateTransactionModel? = null
+    private var locationPermissionRequested = false
 
     override fun createBinding(): CreateTransactionFormContract.Binding {
         return CreateTransactionFormContract.Binding()
@@ -68,7 +75,8 @@ class CreateTransactionFormViewModel(
     private fun onCreate(context: Context, transaction: CreateTransactionModel) {
         this.transaction = transaction
 
-        if (!checkLocationPermissionGranted(context)) {
+        if (!locationPermissionRequested && !checkLocationPermissionGranted(context)) {
+            locationPermissionRequested = true
             setEffect(CreateTransactionFormContract.Effect.RequestLocationPermission)
         }
 
@@ -83,7 +91,15 @@ class CreateTransactionFormViewModel(
             b.farmGeoDataText = transaction.getLocationText() ?: resourceProvider.getString(R.string.tap_to_add_data)
 
             b.commodityTypeText = transaction.getCommodityText() ?: resourceProvider.getString(R.string.tap_to_add_data)
-            b.commodityVolumeText = transaction.getCommodityVolumeText() ?: resourceProvider.getString(R.string.tap_to_add_data)
+            b.commodityVolumeText = transaction.getCommodityVolumeText()
+                ?: resourceProvider.getString(R.string.tap_to_add_data)
+            b.commodityVolumeBreakdown = getCommodityVolumeBreakdown(transaction)
+            b.commodityVolumeHarvestSeasonText = getCommodityVolumeHarvestSeasonText(transaction)
+            b.commodityVolumeHarvestSeasonStatus = if (b.commodityVolumeHarvestSeasonText == null) {
+                null
+            } else {
+                transaction.harvestSeason?.status
+            }
 
             b.userInfoVisible = !transaction.isProducerTransaction
             b.userInfoTitle = if (transaction.action == TransactionAction.Buying) {
@@ -94,14 +110,26 @@ class CreateTransactionFormViewModel(
             b.userInfoText = transaction.getUserInfoText() ?: resourceProvider.getString(R.string.tap_to_add_data)
 
             b.inviteUserVisible = transaction.isProducerTransaction && !transaction.isBuyingFromFarmer
-            b.inviteUserText = transaction.getUserInfoText() ?:  resourceProvider.getString(R.string.tap_to_invite_user)
+            b.inviteUserText = transaction.getUserInfoText() ?: resourceProvider.getString(R.string.tap_to_invite_user)
 
-            b.buttonEnabled = transaction.commodity != null && transaction.volume != null
+            b.buttonEnabled = transaction.commodity != null &&
+                    transaction.volume != null &&
+                    hasRequiredHarvestSeason(transaction)
+            b.isTestEnvironmentEnabled = testEnvironmentManager.isTestEnvironmentEnabled()
         }
     }
 
     private fun validateTransaction() {
         transaction?.let {
+            if (!hasRequiredHarvestSeason(it)) {
+                setEffect(
+                    CreateTransactionFormContract.Effect.ShowError(
+                        resourceProvider.getString(R.string.select_harvest_season)
+                    )
+                )
+                return
+            }
+
             if (it.isProducerTransaction) {
                 setEffect(
                     if (it.locationProvider == null) {
@@ -117,29 +145,38 @@ class CreateTransactionFormViewModel(
     }
 
     private fun createTransaction(context: Context) {
-        if (transaction != null) {
-            launch {
-                setEffect(CreateTransactionFormContract.Effect.ToggleLoader(true))
+        val currentTransaction = transaction ?: return
 
-                val location = getCurrentLocation(context)
-                transaction = transaction?.copy(creationLocation = location?.toLatLng())
+        if (!hasRequiredHarvestSeason(currentTransaction)) {
+            setEffect(
+                CreateTransactionFormContract.Effect.ShowError(
+                    resourceProvider.getString(R.string.select_harvest_season)
+                )
+            )
+            return
+        }
 
-                interactor.createTransaction(transaction!!)
-                    .onSuccess {
-                        setEffect(
-                            CreateTransactionFormContract.Effect.ToggleLoader(false),
-                            CreateTransactionFormContract.Effect.CreateTransactionSuccess
-                        )
+        launch {
+            setEffect(CreateTransactionFormContract.Effect.ToggleLoader(true))
 
-                    }
-                    .onError {
-                        val errorMessage = errorHandler.parseError(it)
-                        setEffect(
-                            CreateTransactionFormContract.Effect.ToggleLoader(false),
-                            CreateTransactionFormContract.Effect.ShowError(errorMessage)
-                        )
-                    }
-            }
+            val location = getCurrentLocation(context)
+            transaction = transaction?.copy(creationLocation = location?.toLatLng())
+
+            interactor.createTransaction(transaction!!)
+                .onSuccess {
+                    setEffect(
+                        CreateTransactionFormContract.Effect.ToggleLoader(false),
+                        CreateTransactionFormContract.Effect.CreateTransactionSuccess
+                    )
+
+                }
+                .onError {
+                    val errorMessage = errorHandler.parseError(it)
+                    setEffect(
+                        CreateTransactionFormContract.Effect.ToggleLoader(false),
+                        CreateTransactionFormContract.Effect.ShowError(errorMessage)
+                    )
+                }
         }
     }
 
@@ -147,5 +184,45 @@ class CreateTransactionFormViewModel(
         transaction?.let {
             setEffect(CreateTransactionFormContract.Effect.NavigateFarmGeoData(it))
         }
+    }
+
+    private fun getCommodityVolumeBreakdown(
+        transaction: CreateTransactionModel,
+    ): CreateTransactionFormContract.CommodityVolumeBreakdown? {
+        if (!shouldShowAutomaticTransactionBreakdown(transaction)) return null
+
+        val commodity = transaction.commodity ?: return null
+        val volume = transaction.volume ?: return null
+        val harvestSeason = transaction.harvestSeason ?: return null
+        val availableVolume = (commodity.balance ?: 0f).coerceAtLeast(0f).coerceAtMost(volume)
+        val missingVolume = (volume - availableVolume).coerceAtLeast(0f)
+
+        return CreateTransactionFormContract.CommodityVolumeBreakdown(
+            harvestSeasonAmountText = "${availableVolume.toQuantityText()} ${commodity.unit}",
+            harvestSeasonText = harvestSeason.getYearRangeText(),
+            harvestSeasonStatus = harvestSeason.status,
+            automaticTransactionAmountText = "${missingVolume.toQuantityText()} ${commodity.unit}",
+            automaticTransactionStatus = harvestSeason.status,
+        )
+    }
+
+    private fun getCommodityVolumeHarvestSeasonText(transaction: CreateTransactionModel): String? {
+        if (transaction.getCommodityVolumeText() == null) return null
+        if (shouldShowAutomaticTransactionBreakdown(transaction)) return null
+
+        return transaction.harvestSeason?.getShortName()
+    }
+
+    private fun shouldShowAutomaticTransactionBreakdown(transaction: CreateTransactionModel): Boolean {
+        val volume = transaction.volume ?: return false
+        val balance = transaction.commodity?.balance ?: return false
+
+        return transaction.action == TransactionAction.Selling &&
+                transaction.harvestSeason?.status == HarvestSeasonStatus.Active &&
+                volume > balance
+    }
+
+    private fun hasRequiredHarvestSeason(transaction: CreateTransactionModel): Boolean {
+        return transaction.isProducerTransaction || !transaction.harvestSeason?.id.isNullOrBlank()
     }
 }

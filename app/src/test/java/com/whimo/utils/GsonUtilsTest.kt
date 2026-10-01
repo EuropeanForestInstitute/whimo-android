@@ -23,6 +23,7 @@ package com.whimo.utils
 
 import org.junit.Assert.*
 import org.junit.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class GsonUtilsTest {
@@ -79,6 +80,32 @@ class GsonUtilsTest {
         // Then
         assertEquals("test", result.name)
         assertEquals(LocalDateTime.of(2023, 12, 25, 10, 30, 45), result.dateTime)
+    }
+
+    @Test
+    fun `LocalDateAdapter writes LocalDate correctly`() {
+        // Given
+        val date = LocalDate.of(2025, 9, 1)
+        val testData = TestDataWithDate(date)
+
+        // When
+        val result = testData.toJsonArgs()
+
+        // Then
+        assertNotNull(result)
+        assertTrue(result.contains("2025-09-01"))
+    }
+
+    @Test
+    fun `LocalDateAdapter reads LocalDate correctly`() {
+        // Given
+        val jsonString = """{"date":"2025-09-01"}"""
+
+        // When
+        val result: TestDataWithDate = jsonString.fromJsonArgs()
+
+        // Then
+        assertEquals(LocalDate.of(2025, 9, 1), result.date)
     }
 
     @Test
@@ -166,6 +193,10 @@ class GsonUtilsTest {
     private data class TestDataWithDateTime(
         val name: String,
         val dateTime: LocalDateTime?
+    )
+
+    private data class TestDataWithDate(
+        val date: LocalDate
     )
 
     private data class ComplexTestData(

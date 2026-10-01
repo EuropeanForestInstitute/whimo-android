@@ -56,9 +56,9 @@ sealed class Screens(val route: String) {
 
     // Balances
     data object GroupBalances : Screens("screen_group_balances")
+    data object BalanceDetails : Screens("screen_balance_details".addArgKeys(ARG_KEY_JSON))
     data object ConvertRecipes : Screens("screen_convert_recipes".addArgKeys(ARG_KEY_JSON))
     data object ConvertCommodity : Screens("screen_convert_commodity".addArgKeys(ARG_KEY_JSON))
-
 
     // Create transaction
     data object CreateTransaction2 : Screens("screen_create_transaction2")

@@ -52,7 +52,9 @@ class TransactionDetailsInteractorImpl(
             createdAtFrom = null,
             createdAtTo = null,
             commodityGroupId = null,
+            commodityId = null,
             buyerId = null,
+            harvestSeasonId = null,
         )
     }
 

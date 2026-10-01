@@ -28,9 +28,12 @@ import com.whimo.base.CoreViewSideEffect
 object SettingsContract {
     data class Binding(
         var text: String = "",
+        var isTestEnvironmentEnabled: Boolean = false,
     ) : CoreViewBinding
 
     sealed class Event : CoreViewEvent {
+        data object OnCreate : Event()
+        data class TestEnvironmentChanged(val isEnabled: Boolean) : Event()
         data object Logout : Event()
         data object DeleteAccount : Event()
     }
@@ -38,6 +41,8 @@ object SettingsContract {
     sealed class Effect : CoreViewSideEffect {
         data class ToggleLoader(val isLoading: Boolean): Effect()
         data class ShowMessage(val message: String): Effect()
+        data object ShowEnteringTestEnvironmentDialog : Effect()
+        data object ShowUnsyncedChangesDialog : Effect()
         data object NavigateAuth: Effect()
     }
 }

@@ -42,6 +42,7 @@ import com.whimo.navigation.Screens
 import com.whimo.navigation.navgraphs.CreateTransactionNavGraph
 import com.whimo.network.authenticator.SessionManager
 import com.whimo.presentation.auth.AuthActivity
+import com.whimo.presentation.ui.components.TestEnvironmentFrame
 import com.whimo.presentation.ui.theme.WhimoTheme
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.koinViewModel
@@ -80,12 +81,14 @@ class CreateTransactionActivity : ComponentActivity(), OnBackPressedDispatcherOw
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.surfaceVariant,
                     ) {
-                        CreateTransactionNavGraph(
-                            modifier = Modifier,
-                            navController = navController,
-                            sharedViewModel = sharedViewModel,
-                            startDestination = startDestination,
-                        )
+                        TestEnvironmentFrame(modifier = Modifier.fillMaxSize()) {
+                            CreateTransactionNavGraph(
+                                modifier = Modifier,
+                                navController = navController,
+                                sharedViewModel = sharedViewModel,
+                                startDestination = startDestination,
+                            )
+                        }
                     }
                 }
             }

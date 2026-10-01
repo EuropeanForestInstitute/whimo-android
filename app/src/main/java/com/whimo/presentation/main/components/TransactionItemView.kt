@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.whimo.R
+import com.whimo.domain.transactions.models.HarvestSeasonStatus
 import com.whimo.domain.transactions.models.TransactionStatus
 import com.whimo.presentation.ui.theme.TextStyleBodyS
 import com.whimo.presentation.ui.theme.TextStyleButtonM
@@ -61,6 +62,7 @@ private fun Preview() {
                 iconRes = R.drawable.ic_status_buy,
                 title = "Cocoa, 300kg",
                 description = "April 22, 2025 11:10am",
+                harvestSeasonText = "2025/26",
                 status = TransactionStatus.Accepted
             )
 
@@ -115,6 +117,8 @@ fun TransactionItem(
     iconRes: Int,
     title: String,
     description: String,
+    harvestSeasonText: String? = null,
+    harvestSeasonStatus: HarvestSeasonStatus? = null,
     status: TransactionStatus? = null,
     showAddLocation: Boolean = false,
     onClick: () -> Unit = {},
@@ -153,6 +157,14 @@ fun TransactionItem(
                 style = TextStyleBodyS,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            if (!harvestSeasonText.isNullOrBlank()) {
+                HarvestSeasonTag(
+                    modifier = Modifier.padding(top = 2.dp),
+                    text = harvestSeasonText,
+                    status = harvestSeasonStatus,
+                )
+            }
 
             if (showAddLocation) {
                 Spacer(modifier = Modifier.height(4.dp))

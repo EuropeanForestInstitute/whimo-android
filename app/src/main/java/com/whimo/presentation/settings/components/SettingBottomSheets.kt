@@ -57,6 +57,7 @@ fun SettingsOptionsBottomSheet(
     onLegalInfoClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onDeleteAccountClick: () -> Unit,
+    isAccountActionsEnabled: Boolean = true,
     onDismissRequest: () -> Unit,
 ) {
     BottomSheetBase(
@@ -84,12 +85,14 @@ fun SettingsOptionsBottomSheet(
             SettingsOptionItemBase(
                 iconRes = R.drawable.ic_logout,
                 title = stringResource(R.string.log_out),
+                isEnabled = isAccountActionsEnabled,
                 onClick = onLogoutClick,
             )
 
             SettingsOptionItemBase(
                 iconRes = R.drawable.ic_delete,
                 title = stringResource(R.string.delete_account),
+                isEnabled = isAccountActionsEnabled,
                 onClick = onDeleteAccountClick,
             )
         }

@@ -45,7 +45,9 @@ interface TransactionsService {
         @Query("created_at_from") createdAtFrom: String?,
         @Query("created_at_to") createdAtTo: String?,
         @Query("commodity_group_id") commodityGroupId: String?,
+        @Query("commodity_id") commodityId: String?,
         @Query("buyer_id") buyerId: String?,
+        @Query("harvest_season_id") harvestSeasonId: String?,
     ): Response<TransactionsResponse>
 
     @GET("transactions/{transaction_id}/")

@@ -42,6 +42,7 @@ import com.whimo.extensions.getParcelableCompatExtra
 import com.whimo.navigation.navgraphs.TransactionDetailsNavGraph
 import com.whimo.network.authenticator.SessionManager
 import com.whimo.presentation.auth.AuthActivity
+import com.whimo.presentation.ui.components.TestEnvironmentFrame
 import com.whimo.presentation.ui.theme.WhimoTheme
 import org.koin.android.ext.android.inject
 
@@ -66,11 +67,13 @@ class TransactionDetailsActivity : ComponentActivity(), OnBackPressedDispatcherO
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.surfaceVariant,
                     ) {
-                        TransactionDetailsNavGraph(
-                            modifier = Modifier,
-                            navController = navController,
-                            transactionModel = transactionModel,
-                        )
+                        TestEnvironmentFrame(modifier = Modifier.fillMaxSize()) {
+                            TransactionDetailsNavGraph(
+                                modifier = Modifier,
+                                navController = navController,
+                                transactionModel = transactionModel,
+                            )
+                        }
                     }
                 }
             }

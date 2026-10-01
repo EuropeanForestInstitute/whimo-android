@@ -32,6 +32,7 @@ import com.whimo.domain.commodity.CommodityInteractor
 import com.whimo.domain.commodity.CommodityInteractorImpl
 import com.whimo.domain.commodity.ConvertCommodityInteractor
 import com.whimo.domain.commodity.ConvertCommodityInteractorImpl
+import com.whimo.presentation.balances.BalanceDetailsViewModel
 import com.whimo.presentation.balances.CommodityGroupsViewModel
 import com.whimo.presentation.balances.CommodityGroupBalancesViewModel
 import com.whimo.presentation.balances.convert.ConvertCommodityViewModel
@@ -49,9 +50,17 @@ val commodityModule = module {
 
     // DB
     single { get<AppDatabase>().commodityGroupsDao() }
+    single { get<AppDatabase>().commodityBalancesDao() }
 
     // Repositories
-    factory<CommodityRepository> { CommodityRepositoryImpl(service = get(), dao = get()) }
+    factory<CommodityRepository> {
+        CommodityRepositoryImpl(
+            service = get(),
+            dao = get(),
+            balancesDao = get(),
+            harvestSeasonCommodityLinker = get(),
+        )
+    }
     factory<ConvertCommodityRepository> { ConvertCommodityRepositoryImpl(service = get()) }
 
     // Interactors
@@ -60,9 +69,23 @@ val commodityModule = module {
 
     // ViewModels
     viewModel { CommodityTypesViewModel(interactor = get(), errorHandler = get()) }
-    viewModel { CommodityVolumeViewModel(interactor = get(), errorHandler = get(), resourceProvider = get()) }
-    viewModel { CommodityGroupsViewModel(interactor = get(), errorHandler = get()) }
+    viewModel {
+        CommodityVolumeViewModel(
+            commodityInteractor = get(),
+            harvestSeasonsInteractor = get(),
+            errorHandler = get(),
+            resourceProvider = get(),
+        )
+    }
+    viewModel {
+        CommodityGroupsViewModel(
+            interactor = get(),
+            harvestSeasonsInteractor = get(),
+            errorHandler = get(),
+        )
+    }
     viewModel { CommodityGroupBalancesViewModel(interactor = get(), errorHandler = get()) }
+    viewModel { BalanceDetailsViewModel(interactor = get()) }
     viewModel { ConvertRecipesViewModel(interactor = get(), errorHandler = get()) }
     viewModel { ConvertCommodityViewModel(interactor = get(), errorHandler = get()) }
 }

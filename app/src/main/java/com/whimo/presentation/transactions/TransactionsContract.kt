@@ -26,7 +26,10 @@ import com.whimo.R
 import com.whimo.base.CoreViewBinding
 import com.whimo.base.CoreViewEvent
 import com.whimo.base.CoreViewSideEffect
+import com.whimo.domain.commodity.models.CommodityGroupModel
 import com.whimo.domain.createtransaction.models.PendingTransactionModel
+import com.whimo.domain.createtransaction.models.PendingTransactionsSyncProgress
+import com.whimo.domain.transactions.models.HarvestSeasonModel
 import com.whimo.domain.transactions.models.TransactionModel
 import com.whimo.domain.transactions.models.TransactionStatus
 import com.whimo.domain.transactions.models.TransactionsState
@@ -50,9 +53,16 @@ object TransactionsContract {
 
         var query: String? = null,
 
+        var commodityGroups: List<CommodityGroupModel> = emptyList(),
+        var selectedCommodityGroup: CommodityGroupModel? = null,
+        var harvestSeasons: List<HarvestSeasonModel> = emptyList(),
+        var selectedHarvestSeason: HarvestSeasonModel? = null,
+
         var dateStart: LocalDateTime? = null,
         var dateEnd: LocalDateTime? = null,
         var status: TransactionStatus? = null,
+
+        var pendingSyncProgress: PendingTransactionsSyncProgress? = null,
     ) : CoreViewBinding
 
     sealed class Event : CoreViewEvent {
@@ -63,12 +73,19 @@ object TransactionsContract {
         data class NextPage(val tab: TransactionsTab) : Event()
 
         data class QueryChanged(val query: String) : Event()
+        data class HarvestSeasonFilterCommodityGroupChanged(val commodityGroup: CommodityGroupModel?) : Event()
+        data class HarvestSeasonFilterChanged(
+            val commodityGroup: CommodityGroupModel?,
+            val harvestSeason: HarvestSeasonModel?,
+        ) : Event()
+        data class HarvestSeasonChanged(val harvestSeason: HarvestSeasonModel?) : Event()
         data class DatesChanged(val dateStart: LocalDateTime? = null, val dateEnd: LocalDateTime? = null) : Event()
         data class StatusChanged(val status: TransactionStatus) : Event()
 
         data class TransactionClicked(val transaction: TransactionModel) : Event()
         data class AddGeoDataClicked(val transaction: TransactionModel) : Event()
         data object NotificationsClicked : Event()
+        data class NetworkAvailabilityChanged(val isAvailable: Boolean) : Event()
     }
 
     sealed class Effect : CoreViewSideEffect {
@@ -76,4 +93,4 @@ object TransactionsContract {
         data class NavigateAddGeolocation(val transaction: TransactionModel): Effect()
         data object NavigateNotifications: Effect()
     }
-} 
+}

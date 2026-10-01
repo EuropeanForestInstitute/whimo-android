@@ -27,9 +27,12 @@ import com.whimo.base.CoreViewEvent
 import com.whimo.domain.createtransaction.models.CreateTransactionModel
 import com.whimo.domain.transactions.models.TransactionModel
 import com.whimo.extensions.toLatLng
+import com.whimo.utils.checkLocationPermissionGranted
 import com.whimo.utils.getCurrentLocation
 
 class FarmGeoDataViewModel : BaseViewModel<FarmGeoDataContract.Binding>() {
+
+    private var isLocationLoading = false
 
     override fun createBinding(): FarmGeoDataContract.Binding {
         return FarmGeoDataContract.Binding()
@@ -67,16 +70,31 @@ class FarmGeoDataViewModel : BaseViewModel<FarmGeoDataContract.Binding>() {
     }
 
     private fun onRecordLocationClick(context: Context) {
-        launch {
-            val location = getCurrentLocation(context)
+        if (!checkLocationPermissionGranted(context)) {
+            setEffect(FarmGeoDataContract.Effect.RequestLocationPermission)
+            return
+        }
 
-            setEffect(
-                if (location == null) {
-                    FarmGeoDataContract.Effect.RequestLocationPermission
-                } else {
-                    FarmGeoDataContract.Effect.LocationRecorded(location.toLatLng())
-                }
-            )
+        if (isLocationLoading) return
+        isLocationLoading = true
+
+        launch {
+            setEffect(FarmGeoDataContract.Effect.ToggleLoader(true))
+
+            try {
+                val location = getCurrentLocation(context)
+
+                setEffect(
+                    if (location == null) {
+                        FarmGeoDataContract.Effect.RequestLocationPermission
+                    } else {
+                        FarmGeoDataContract.Effect.LocationRecorded(location.toLatLng())
+                    }
+                )
+            } finally {
+                isLocationLoading = false
+                setEffect(FarmGeoDataContract.Effect.ToggleLoader(false))
+            }
         }
     }
 }

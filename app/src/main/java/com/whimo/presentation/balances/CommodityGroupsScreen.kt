@@ -22,14 +22,20 @@
 package com.whimo.presentation.balances
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,13 +52,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.whimo.R
 import com.whimo.base.ObserveEffects
+import com.whimo.extensions.isNetworkAvailable
 import com.whimo.navigation.Screens
-import com.whimo.presentation.balances.components.CommodityGroupList
+import com.whimo.presentation.balances.components.BalanceCommodityList
 import com.whimo.presentation.main.components.EmptyState
+import com.whimo.presentation.main.components.HarvestSeasonFilterBottomSheet
+import com.whimo.presentation.main.components.HarvestSeasonFilterChip
+import com.whimo.presentation.main.components.SearchFilterBar
 import com.whimo.presentation.main.components.Toolbar
+import com.whimo.presentation.notifications.NotificationsActivity
 import com.whimo.presentation.ui.baseScreen.MainIconButton
 import com.whimo.presentation.ui.theme.WhimoTheme
-import com.whimo.utils.setResult
 import org.koin.androidx.compose.koinViewModel
 
 @Preview
@@ -68,6 +78,7 @@ private fun Preview() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommodityGroupsScreen(
     modifier: Modifier,
@@ -83,19 +94,19 @@ fun CommodityGroupsScreen(
         contract = ActivityResultContracts.StartActivityForResult(),
         onResult = { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                navController.setResult(Screens.Home.route, "createTransactionResult", true)
-                navController.popBackStack(Screens.Home.route, false, false)
+                viewModel?.setEvent(CommodityGroupsContract.Event.Refresh)
             }
         }
     )
 
-    var isLoading by remember { mutableStateOf(false) }
+    var showSeasonFilter by remember { mutableStateOf(false) }
+    val networkAvailable = context.isNetworkAvailable()
 
     if (viewModel != null) {
         ObserveEffects(viewModel) { effect ->
             when (effect) {
-                is CommodityGroupsContract.Effect.ToggleLoader -> {
-                    isLoading = effect.isLoading
+                is CommodityGroupsContract.Effect.ShowMessage -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -110,35 +121,124 @@ fun CommodityGroupsScreen(
     ) {
         Toolbar(
             title = stringResource(R.string.balances),
-//            iconRes = if (haveUnreadNotifications) R.drawable.ic_notification_dot else R.drawable.ic_notification,
+            iconRes = if (haveUnreadNotifications) R.drawable.ic_notification_dot else R.drawable.ic_notification,
+        ) {
+            NotificationsActivity.openNotifications(navController.context, launcher)
+        }
+
+        val harvestSeasonFilterIsActive = binding.selectedCommodityGroup != null || binding.selectedHarvestSeason != null
+
+        SearchFilterBar(
+            modifier = Modifier.padding(
+                start = 16.dp,
+                top = 16.dp,
+                end = 16.dp,
+                bottom = if (harvestSeasonFilterIsActive) 8.dp else 16.dp,
+            ),
+            query = binding.query ?: "",
+            hintText = stringResource(R.string.search_balance),
+            filterIsActive = harvestSeasonFilterIsActive,
+            onSearch = {
+                viewModel?.setEvent(CommodityGroupsContract.Event.QueryChanged(it))
+            },
+            onFilterClick = {
+                showSeasonFilter = true
+            },
         )
 
-        if (!binding.commodities.isNullOrEmpty()) {
-            CommodityGroupList(
-                modifier = Modifier.fillMaxHeight(),
-                sections = binding.commodities!!,
-                onSelect = {
-                    CommodityGroupBalancesActivity.openCommodityGroupBalances(context, launcher, it)
-                }
+        if (harvestSeasonFilterIsActive) {
+            HarvestSeasonFilterChip(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+                commodityGroup = binding.selectedCommodityGroup,
+                harvestSeason = binding.selectedHarvestSeason,
+                onClear = {
+                    viewModel?.setEvent(CommodityGroupsContract.Event.HarvestSeasonFilterChanged(null, null))
+                },
             )
-        } else {
-            EmptyState(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
-                iconRes = R.drawable.ic_empty,
-                title = stringResource(R.string.no_balance),
-                description = stringResource(R.string.no_transactions_description),
-            ) {
-                MainIconButton(
-                    modifier = Modifier.padding(top = 24.dp),
-                    iconRes = R.drawable.ic_add_transaction,
-                    title = stringResource(R.string.add_transaction),
-                    onClick = {
-                        navController.navigate(Screens.CreateTransaction.route)
-                    },
-                )
+        }
+
+        val balances = binding.balances
+
+        PullToRefreshBox(
+            modifier = Modifier.fillMaxSize(),
+            isRefreshing = binding.isRefreshing,
+            onRefresh = {
+                viewModel?.setEvent(CommodityGroupsContract.Event.Refresh)
+            },
+        ) {
+            when {
+                balances == null -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(color = MaterialTheme.colorScheme.surface)
+                    )
+                }
+                balances.isNotEmpty() -> {
+                    BalanceCommodityList(
+                        modifier = Modifier.fillMaxHeight(),
+                        networkAvailable = networkAvailable,
+                        items = balances,
+                        onBalanceClick = { item ->
+                            CommodityGroupBalancesActivity.openBalanceDetails(
+                                context = context,
+                                launcher = launcher,
+                                args = BalanceDetailsArgs(
+                                    commodity = item.commodity,
+                                    harvestSeason = binding.selectedHarvestSeason ?: item.harvestSeason,
+                                    traceabilityStatus = item.traceabilityStatus,
+                                ),
+                            )
+                        },
+                        onConvertClick = {
+                            CommodityGroupBalancesActivity.openConvertRecipes(context, launcher, it)
+                        },
+                    )
+                }
+                else -> {
+                    EmptyState(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        iconRes = R.drawable.ic_empty,
+                        title = stringResource(R.string.no_balance),
+                        description = stringResource(R.string.no_transactions_description),
+                    ) {
+                        MainIconButton(
+                            modifier = Modifier.padding(top = 24.dp),
+                            iconRes = R.drawable.ic_add_transaction,
+                            title = stringResource(R.string.add_transaction),
+                            onClick = {
+                                navController.navigate(Screens.CreateTransaction.route)
+                            },
+                        )
+                    }
+                }
             }
         }
+    }
+
+    if (showSeasonFilter) {
+        HarvestSeasonFilterBottomSheet(
+            commodityGroups = binding.commodityGroups,
+            harvestSeasons = binding.harvestSeasons,
+            selectedCommodityGroup = binding.selectedCommodityGroup,
+            selectedSeason = binding.selectedHarvestSeason,
+            onCommodityGroupPreviewChanged = {
+                viewModel?.setEvent(CommodityGroupsContract.Event.HarvestSeasonFilterCommodityGroupChanged(it))
+            },
+            onApply = { commodityGroup, harvestSeason ->
+                viewModel?.setEvent(
+                    CommodityGroupsContract.Event.HarvestSeasonFilterChanged(
+                        commodityGroup = commodityGroup,
+                        harvestSeason = harvestSeason,
+                    )
+                )
+            },
+            onReset = {
+                viewModel?.setEvent(CommodityGroupsContract.Event.HarvestSeasonFilterChanged(null, null))
+            },
+            onDismissRequest = { showSeasonFilter = false },
+        )
     }
 }

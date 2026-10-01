@@ -46,7 +46,9 @@ interface TransactionsRepository {
         createdAtFrom: String?,
         createdAtTo: String?,
         commodityGroupId: String?,
+        commodityId: String?,
         buyerId: String?,
+        harvestSeasonId: String?,
     ): BaseResult<Pair<PaginationModel, List<TransactionModel>>>
 
     suspend fun getTransactionsFromDB(
@@ -56,7 +58,9 @@ interface TransactionsRepository {
         createdAtFrom: LocalDateTime?,
         createdAtTo: LocalDateTime?,
         commodityGroupId: String?,
+        commodityId: String?,
         buyerId: String?,
+        harvestSeasonId: String?,
     ): List<TransactionModel>
 
     suspend fun updateTransactionsDB(items: List<TransactionModel>?)
@@ -103,7 +107,9 @@ class TransactionsRepositoryImpl(
         createdAtFrom: String?,
         createdAtTo: String?,
         commodityGroupId: String?,
+        commodityId: String?,
         buyerId: String?,
+        harvestSeasonId: String?,
     ): BaseResult<Pair<PaginationModel, List<TransactionModel>>> {
         return handleResponse {
             service.getTransactions(
@@ -115,7 +121,9 @@ class TransactionsRepositoryImpl(
                 createdAtFrom = createdAtFrom,
                 createdAtTo = createdAtTo,
                 commodityGroupId = commodityGroupId,
+                commodityId = commodityId,
                 buyerId = buyerId,
+                harvestSeasonId = harvestSeasonId,
             )
         }.mapResult { it?.toDomain() }
     }
@@ -127,7 +135,9 @@ class TransactionsRepositoryImpl(
         createdAtFrom: LocalDateTime?,
         createdAtTo: LocalDateTime?,
         commodityGroupId: String?,
-        buyerId: String?
+        commodityId: String?,
+        buyerId: String?,
+        harvestSeasonId: String?,
     ): List<TransactionModel> {
         return transactionsDao.getAll(status = status, action = action)
             .map { it.toDomain() }
@@ -137,10 +147,12 @@ class TransactionsRepositoryImpl(
                         || it.commodity.group?.name == null
                         || it.commodity.group.name.contains(search, true)
                 val validCommodityGroup = commodityGroupId == null || it.commodity.group?.id == commodityGroupId
+                val validCommodity = commodityId == null || it.commodity.id == commodityId
+                val validHarvestSeason = harvestSeasonId == null || it.harvestSeason?.id == harvestSeasonId
                 val validStartDate = createdAtFrom == null || it.createdDate.isAfter(createdAtFrom)
                 val validEndDate = createdAtTo == null || it.createdDate.isBefore(createdAtTo)
 
-                validSearch && validCommodityGroup && validStartDate && validEndDate
+                validSearch && validCommodityGroup && validCommodity && validHarvestSeason && validStartDate && validEndDate
             }
     }
 

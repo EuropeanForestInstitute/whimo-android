@@ -26,6 +26,9 @@
     <string name="retry">Reintentar</string>
     <string name="cancel">Cancelar</string>
     <string name="ok">OK</string>
+    <string name="apply">Aplicar</string>
+    <string name="reset">Restablecer</string>
+    <string name="filter">Filtro</string>
     <string name="save">Guardar</string>
     <string name="delete">Eliminar</string>
     <string name="edit">Editar</string>
@@ -179,6 +182,7 @@
 
     <!-- Additional UI Strings -->
     <string name="search_transaction">Buscar transacción</string>
+    <string name="search_balance">Buscar saldo</string>
     <string name="search_icon">Ícono de búsqueda</string>
     <string name="filter_icon">Ícono de filtro</string>
     <string name="bought">Comprado</string>
@@ -227,10 +231,26 @@
     <!-- Transaction Details Strings -->
     <string name="transaction_details">Detalles de la transacción</string>
     <string name="commodity_type">Tipo de producto</string>
+    <string name="all_commodity_groups">Todos los grupos de productos</string>
+    <string name="harvest_season">Temporada de cosecha</string>
+    <string name="all_harvest_seasons">Todas las temporadas de cosecha</string>
+    <string name="active">Activa</string>
+    <string name="past">Pasada</string>
+    <string name="archived">Archivada</string>
+    <string name="active_season">Temporada activa %s</string>
+    <string name="past_season">Temporada pasada %s</string>
+    <string name="archived_season">Temporada archivada %s</string>
+    <string name="harvest_season_description">Las temporadas de cosecha ayudan a organizar las transacciones por cosecha.</string>
+    <string name="harvest_season_assignment_description">La temporada se asigna cuando se crea la primera transacción y se usa automáticamente en el resto de la cadena de suministro.</string>
+    <string name="harvest_season_period">%1$s: %2$s - %3$s</string>
+    <string name="harvest_season_period_no_country">%1$s - %2$s</string>
     <string name="farm_geodata_missing">Faltan datos</string>
     <string name="traders">comerciantes</string>
     <string name="buyer_information">Información del comprador</string>
+    <string name="buyer_id">ID del comprador</string>
     <string name="supplier_information">Información del proveedor</string>
+    <string name="seller_id">ID del vendedor</string>
+    <string name="transaction_status">Estado de la transacción</string>
     <string name="transaction_date">Fecha de transacción</string>
     <string name="expiry_date">Fecha de expiración</string>
     <string name="my_supplier_history">Historial de mi proveedor</string>
@@ -239,6 +259,10 @@
     <string name="resend_notification">Reenviar notificación</string>
     <string name="reject_transaction">Rechazar transacción</string>
     <string name="accept_transaction">Aceptar transacción</string>
+    <string name="sales_transaction">Transacción de venta</string>
+    <string name="got_it">Entendido</string>
+    <string name="not_enough_available_balance">No hay saldo disponible suficiente.</string>
+    <string name="accept_transaction_insufficient_balance_dialog">Tienes %1$s disponibles para la temporada de cosecha %2$s, pero el comprador solicitó %3$s.\n\nNo puedes aceptar esta transacción hasta tener suficiente saldo disponible.\n\nTambién puedes rechazar esta solicitud y crear una nueva venta por la cantidad disponible.</string>
     <string name="no_history">Sin historial</string>
     <string name="download_locations">Descargar ubicaciones</string>
     <string name="request_missing_locations">Solicitar ubicaciones faltantes</string>
@@ -279,10 +303,26 @@
     <string name="counterparty_info_instruction">Por favor, introduce información precisa del contraparte para que podamos invitarlo a WHIMO.</string>
     <string name="balances">Saldos</string>
     <string name="your_balance">Tu saldo: %s</string>
+    <string name="balance_details">Detalles del saldo</string>
+    <string name="source_transactions">Transacciones de origen</string>
+    <string name="last_activity">Última actividad</string>
+    <string name="no_source_transactions">No hay transacciones de origen</string>
+    <string name="you_are_working_offline_now">Estás trabajando sin conexión.</string>
+    <string name="harvest_season_format">Temporada de cosecha %s</string>
+    <string name="select_harvest_season">Seleccionar temporada de cosecha</string>
+    <string name="select">Seleccionar</string>
+    <string name="select_commodity_type_to_buy">Por favor, selecciona el tipo de mercancía que quieres comprar.</string>
+    <string name="select_commodity_type_to_sell">Por favor, selecciona el tipo de mercancía que quieres vender.</string>
+    <string name="insufficient_season_balance_message">No hay saldo disponible suficiente para la temporada de cosecha %s.</string>
+    <string name="automatic_transaction_balance_message">No hay saldo disponible suficiente.\n\nSe creará una transacción automática para cubrir los %s faltantes. Este volumen tendrá trazabilidad incompleta.</string>
+    <string name="commodity_volume_with_season">%1$s %2$s</string>
+    <string name="sale_volume_summary_with_auto">Tu venta incluirá:\n%1$s de la temporada %2$s\n%3$s transacción automática</string>
+    <string name="sale_volume_breakdown_title">Tu venta incluirá:</string>
+    <string name="sale_volume_breakdown_from_season">de la temporada %s</string>
+    <string name="sale_volume_breakdown_auto_transaction">transacción automática</string>
     <string name="upload_file_description2">Si estás comprando a un agricultor y deseas más opciones para añadir datos, vuelve atrás y selecciona la opción que necesitas al crear la transacción.</string>
     <string name="from_initial_seller">del vendedor inicial</string>
-    <string name="from_trader">del comerciante #%s</string>
-    <string name="from_a_cooperative">de una cooperativa o comerciante desconocido</string>
+    <string name="from_trader">del comerciante #%s</string>    <string name="from_a_cooperative">de una cooperativa o comerciante desconocido</string>
     <string name="traceability_status">Estado de trazabilidad</string>
     <string name="traceability_status_description">El gráfico circular puede darte una idea del rendimiento de trazabilidad (mostrando la proporción de sus proveedores en cada estado de trazabilidad).</string>
     <string name="full_traceability_status_description">La geolocalización se proporcionó escaneando la tarjeta del agricultor o capturando el GPS de la finca (o si el agricultor usa la app para validar la transacción).</string>
@@ -305,6 +345,8 @@
 
     <string name="download">Descargar</string>
     <string name="offline_transaction">Transacción sin conexión</string>
+    <string name="offline_transactions_sync_title">Sincronizando transacciones sin conexión</string>
+    <string name="offline_transactions_sync_progress">%1$d de %2$d transacciones sin conexión procesadas</string>
     <string name="download_farms_locations">Descargar ubicaciones de fincas</string>
     <string name="download_farms_locations_description">Vas a descargar datos de geolocalización de fincas, incluyendo:\n• Archivos GeoJSON combinados\n• Archivos de ubicación personalizados</string>
     <string name="download_transaction_details_q">¿Descargar detalles de la transacción?</string>

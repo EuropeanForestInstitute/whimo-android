@@ -23,6 +23,7 @@ package com.whimo.data.transactions.model.response
 
 import com.whimo.data.base.common.Pagination
 import com.whimo.data.commodity.model.response.Commodity
+import com.whimo.data.harvestseasons.model.response.HarvestSeasonData
 
 data class TransactionsResponse(
     val success: Boolean,
@@ -50,17 +51,22 @@ data class TransactionData(
     val type: String,
     val status: String,
     val action: String,
-    val location: String,
+    val location: String?,
     val latitude: Double?,
     val longitude: Double?,
+    val transaction_latitude: Double?,
+    val transaction_longitude: Double?,
+    val farm_latitude: Double?,
+    val farm_longitude: Double?,
     val commodity: Commodity,
     val volume: Float,
-    val traceability: String,
+    val traceability: String?,
     val seller: User?,
     val buyer: User?,
     val is_buying_from_farmer: Boolean,
     val is_automatic: Boolean,
-    val created_by_id: String,
+    val harvest_season: HarvestSeasonData?,
+    val created_by_id: String?,
 )
 
 data class User(

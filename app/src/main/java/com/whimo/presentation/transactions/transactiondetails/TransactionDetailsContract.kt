@@ -26,6 +26,7 @@ import com.whimo.base.CoreViewBinding
 import com.whimo.base.CoreViewEvent
 import com.whimo.base.CoreViewSideEffect
 import com.whimo.domain.createtransaction.models.LocationProvider
+import com.whimo.domain.transactions.models.HarvestSeasonModel
 import com.whimo.domain.transactions.models.TraceabilityCountsModel
 import com.whimo.domain.transactions.models.TraceabilityStatus
 import com.whimo.domain.transactions.models.TransactionModel
@@ -42,7 +43,10 @@ object TransactionDetailsContract {
         var transactionDetails: TransactionModel? = null,
         var traceabilityCounts: TraceabilityCountsModel? = null,
 
+        var toolbarTitle: String = "",
         var commodityText: String? = null,
+        var commodityWarningText: String? = null,
+        var harvestSeason: HarvestSeasonModel? = null,
 
         var showLocation: Boolean = false,
         var locationProvider: LocationProvider? = null,
@@ -63,6 +67,11 @@ object TransactionDetailsContract {
 
         var showInitiatorActionButtons: Boolean = false,
         var showRecipientActionButtons: Boolean = false,
+        var acceptEnabled: Boolean = true,
+        var acceptBlocked: Boolean = false,
+        var acceptBalanceLoading: Boolean = false,
+        var acceptWarningText: String? = null,
+        var acceptBlockedDialogText: String = "",
 
         var downloadEnabled: Boolean = false,
         var dialogDescription: String = "",

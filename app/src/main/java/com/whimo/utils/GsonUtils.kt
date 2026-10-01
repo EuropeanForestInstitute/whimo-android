@@ -26,12 +26,36 @@ import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 val gson: Gson = GsonBuilder()
+    .registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
     .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
     .create()
+
+class LocalDateAdapter : TypeAdapter<LocalDate>() {
+    private val formatter = DateTimeFormatter.ISO_LOCAL_DATE
+
+    override fun write(out: JsonWriter, value: LocalDate?) {
+        if (value == null) {
+            out.nullValue()
+        } else {
+            out.value(value.format(formatter))
+        }
+    }
+
+    override fun read(`in`: JsonReader): LocalDate? {
+        return if (`in`.peek() == com.google.gson.stream.JsonToken.NULL) {
+            `in`.nextNull()
+            null
+        } else {
+            val value = `in`.nextString()
+            LocalDate.parse(value, formatter)
+        }
+    }
+}
 
 class LocalDateTimeAdapter : TypeAdapter<LocalDateTime>() {
     private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME

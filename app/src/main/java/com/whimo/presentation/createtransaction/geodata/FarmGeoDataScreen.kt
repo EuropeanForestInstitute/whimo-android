@@ -22,6 +22,7 @@
 package com.whimo.presentation.createtransaction.geodata
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -47,6 +48,7 @@ import com.whimo.domain.transactions.models.TransactionModel
 import com.whimo.extensions.findActivity
 import com.whimo.navigation.Screens
 import com.whimo.presentation.createtransaction.components.CreateTransactionButton4
+import com.whimo.presentation.main.components.LoadingState
 import com.whimo.presentation.main.components.Toolbar2
 import com.whimo.presentation.ui.theme.WhimoTheme
 import com.whimo.utils.LocationPermissionRequester
@@ -76,6 +78,7 @@ fun FarmGeoDataScreen(
     val context = LocalContext.current
 
     var requestPermission by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     if (viewModel != null) {
         ObserveEffects(viewModel) { effect ->
@@ -90,6 +93,9 @@ fun FarmGeoDataScreen(
                         location = effect.location,
                     )
                     activity.finish()
+                }
+                is FarmGeoDataContract.Effect.ToggleLoader -> {
+                    isLoading = effect.isLoading
                 }
             }
         }
@@ -113,57 +119,63 @@ fun FarmGeoDataScreen(
         }
     }
 
-    Column(modifier = modifier) {
-        Toolbar2(
-            navController = navController,
-            title = stringResource(R.string.farm_geodata),
-        )
+    Box(modifier = modifier) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Toolbar2(
+                navController = navController,
+                title = stringResource(R.string.farm_geodata),
+            )
 
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
 
-            if (binding.qrButtonVisible) {
-                CreateTransactionButton4(
-                    iconRes = R.drawable.ic_qr,
-                    title = stringResource(R.string.scan_qr_code),
-                    description = stringResource(R.string.scan_qr_description_long),
-                ) {
-                    navController.navigate(Screens.QrScan.route)
+                if (binding.qrButtonVisible) {
+                    CreateTransactionButton4(
+                        iconRes = R.drawable.ic_qr,
+                        title = stringResource(R.string.scan_qr_code),
+                        description = stringResource(R.string.scan_qr_description_long),
+                    ) {
+                        navController.navigate(Screens.QrScan.route)
+                    }
+                }
+
+                if (binding.uploadFileButtonVisible) {
+                    CreateTransactionButton4(
+                        iconRes = R.drawable.ic_upload,
+                        title = stringResource(R.string.upload_file),
+                        description = stringResource(R.string.upload_file_description_long),
+                    ) {
+                        navController.navigate(Screens.UploadFile.route)
+                    }
+                }
+
+                if (binding.gpsButtonVisible) {
+                    CreateTransactionButton4(
+                        iconRes = R.drawable.ic_map_marker,
+                        title = stringResource(R.string.record_my_geodata),
+                        description = stringResource(R.string.record_geolocation_description_long),
+                    ) {
+                        viewModel?.setEvent(FarmGeoDataContract.Event.OnRecordLocationClick(context))
+                    }
+                }
+
+                if (binding.mapButtonVisible) {
+                    CreateTransactionButton4(
+                        iconRes = R.drawable.ic_map,
+                        title = stringResource(R.string.add_gps_point),
+                        description = stringResource(R.string.add_gps_point_description),
+                    ) {
+                        navController.navigate(Screens.Map.route)
+                    }
                 }
             }
+        }
 
-            if (binding.uploadFileButtonVisible) {
-                CreateTransactionButton4(
-                    iconRes = R.drawable.ic_upload,
-                    title = stringResource(R.string.upload_file),
-                    description = stringResource(R.string.upload_file_description_long),
-                ) {
-                    navController.navigate(Screens.UploadFile.route)
-                }
-            }
-
-            if (binding.gpsButtonVisible) {
-                CreateTransactionButton4(
-                    iconRes = R.drawable.ic_map_marker,
-                    title = stringResource(R.string.record_my_geodata),
-                    description = stringResource(R.string.record_geolocation_description_long),
-                ) {
-                    viewModel?.setEvent(FarmGeoDataContract.Event.OnRecordLocationClick(context))
-                }
-            }
-
-            if (binding.mapButtonVisible) {
-                CreateTransactionButton4(
-                    iconRes = R.drawable.ic_map,
-                    title = stringResource(R.string.add_gps_point),
-                    description = stringResource(R.string.add_gps_point_description),
-                ) {
-                    navController.navigate(Screens.Map.route)
-                }
-            }
+        if (isLoading) {
+            LoadingState()
         }
     }
 }

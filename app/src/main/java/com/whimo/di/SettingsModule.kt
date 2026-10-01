@@ -52,7 +52,15 @@ val settingsModule = module {
     factory<SettingsInteractor> { SettingsInteractorImpl(repository = get(), sessionManager = get()) }
 
     // ViewModels
-    viewModel { SettingsViewModel(interactor = get(), errorHandler = get(), resourceProvider = get()) }
+    viewModel {
+        SettingsViewModel(
+            interactor = get(),
+            createTransactionInteractor = get(),
+            testEnvironmentManager = get(),
+            errorHandler = get(),
+            resourceProvider = get(),
+        )
+    }
     viewModel { AccountInfoViewModel(interactor = get(), errorHandler = get(), sharedPreferencesProvider = get(), resourceProvider = get()) }
     viewModel { EditEmailViewModel(interactor = get(), errorHandler = get(), resourceProvider = get()) }
     viewModel { EditPhoneViewModel(interactor = get(), errorHandler = get(), resourceProvider = get(), remoteConfigProvider = get()) }

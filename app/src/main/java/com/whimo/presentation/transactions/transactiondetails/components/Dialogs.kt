@@ -28,25 +28,36 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.whimo.R
+import com.whimo.domain.transactions.models.HarvestSeasonModel
+import com.whimo.domain.transactions.models.HarvestSeasonStatus
 import com.whimo.domain.transactions.models.TraceabilityStatus
 import com.whimo.domain.transactions.models.TransactionStatus
 import com.whimo.domain.transactions.models.UserModel
+import com.whimo.domain.transactions.models.getShortName
+import com.whimo.extensions.toShortFormattedDateString
 import com.whimo.presentation.main.components.TraceabilityStatusView
+import com.whimo.presentation.ui.theme.ColorGray30
+import com.whimo.presentation.ui.theme.ColorHarvestSeasonActiveBackground
+import com.whimo.presentation.ui.theme.ColorHarvestSeasonActiveContent
+import com.whimo.presentation.ui.theme.ColorHarvestSeasonPastBackground
+import com.whimo.presentation.ui.theme.ColorHarvestSeasonPastContent
+import com.whimo.presentation.ui.theme.TextStyleBodyM
 import com.whimo.presentation.ui.theme.TextStyleBodyS
 import com.whimo.presentation.ui.theme.TextStyleMediumM
 import com.whimo.presentation.ui.theme.WhimoTheme
-
 @Preview
 @Composable
 private fun Preview() {
@@ -184,6 +195,90 @@ fun UserInfoItem(
             )
         }
     }
+}
+
+@Composable
+fun HarvestSeasonInfoDialog(
+    season: HarvestSeasonModel,
+    onDismiss: () -> Unit,
+) {
+    BaseDialog(
+        title = stringResource(R.string.harvest_season),
+        onDismiss = onDismiss,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.harvest_season_description),
+                style = TextStyleBodyM,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Text(
+                text = stringResource(R.string.harvest_season_assignment_description),
+                style = TextStyleBodyM,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            HarvestSeasonInfoLabel(season = season)
+
+            val startDateText = season.startDate?.toShortFormattedDateString()
+            val endDateText = season.endDate?.toShortFormattedDateString()
+
+            if (startDateText != null && endDateText != null) {
+                val periodText = if (season.country.isNullOrBlank()) {
+                    stringResource(R.string.harvest_season_period_no_country, startDateText, endDateText)
+                } else {
+                    stringResource(R.string.harvest_season_period, season.country, startDateText, endDateText)
+                }
+
+                Text(
+                    text = periodText,
+                    style = TextStyleBodyM,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HarvestSeasonInfoLabel(
+    season: HarvestSeasonModel,
+) {
+    val status = season.status
+    val bgColor = when (status) {
+        HarvestSeasonStatus.Active -> ColorHarvestSeasonActiveBackground
+        HarvestSeasonStatus.Past -> ColorHarvestSeasonPastBackground
+        HarvestSeasonStatus.Archived -> ColorGray30
+        null -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    val textColor = when (status) {
+        HarvestSeasonStatus.Active -> ColorHarvestSeasonActiveContent
+        HarvestSeasonStatus.Past -> ColorHarvestSeasonPastContent
+        HarvestSeasonStatus.Archived -> Color.White
+        null -> MaterialTheme.colorScheme.onSurface
+    }
+    val text = when (status) {
+        HarvestSeasonStatus.Active -> stringResource(R.string.active_season, season.getShortName())
+        HarvestSeasonStatus.Past -> stringResource(R.string.past_season, season.getShortName())
+        HarvestSeasonStatus.Archived -> stringResource(R.string.archived_season, season.getShortName())
+        null -> season.name
+    }
+
+    Text(
+        modifier = Modifier
+            .background(color = bgColor, shape = RoundedCornerShape(4.dp))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        text = text,
+        style = TextStyleMediumM,
+        color = textColor,
+    )
 }
 
 @Composable
