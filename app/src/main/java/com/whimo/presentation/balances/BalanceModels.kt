@@ -23,6 +23,7 @@ package com.whimo.presentation.balances
 
 import com.whimo.domain.commodity.models.CommodityBalanceModel
 import com.whimo.domain.commodity.models.CommodityModel
+import com.whimo.domain.commodity.models.ConvertRecipeModel
 import com.whimo.domain.transactions.models.HarvestSeasonModel
 import com.whimo.domain.transactions.models.TraceabilityStatus
 import com.whimo.domain.transactions.models.TransactionModel
@@ -37,6 +38,16 @@ data class BalanceDetailsArgs(
     val commodity: CommodityModel,
     val harvestSeason: HarvestSeasonModel? = null,
     val traceabilityStatus: TraceabilityStatus? = null,
+)
+
+data class ConvertRecipesArgs(
+    val commodity: CommodityModel,
+    val harvestSeason: HarvestSeasonModel? = null,
+)
+
+data class ConvertCommodityArgs(
+    val recipe: ConvertRecipeModel,
+    val harvestSeason: HarvestSeasonModel? = null,
 )
 
 internal fun HarvestSeasonModel.sameSeasonAs(other: HarvestSeasonModel?): Boolean {

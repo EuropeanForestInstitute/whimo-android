@@ -7,14 +7,20 @@ plugins {
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
     id 'org.jetbrains.kotlin.plugin.compose' version "2.2.20"
-    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
     id 'com.google.devtools.ksp' version '2.1.21-2.0.1'
 }
 
-secrets {
-    propertiesFileName = "config/secrets.properties"
-    defaultPropertiesFileName = "config/local.defaults.properties"
+def loadProperties = { String path ->
+    def properties = new Properties()
+    def propertiesFile = rootProject.file(path)
+    if (propertiesFile.exists()) {
+        propertiesFile.withInputStream { properties.load(it) }
+    }
+    properties
 }
+
+def secretProperties = loadProperties("config/secrets.properties")
+def secretDefaults = loadProperties("config/local.defaults.properties")
 
 android {
     namespace 'com.whimo'
@@ -24,8 +30,8 @@ android {
         applicationId "com.whimo"
         minSdk 26
         targetSdk 36
-        versionCode 71
-        versionName "1.13"
+        versionCode 76
+        versionName "1.15"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -55,6 +61,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+        }
+
         def propsFile = rootProject.file("config/build.properties")
         if (propsFile.exists()) {
             def props = new Properties()
@@ -89,6 +100,24 @@ android {
                 buildConfigField "String", "TERMS_OF_USE", props['debug_terms_of_use']
                 buildConfigField "String", "FEEDBACK_EMAIL", props['debug_feedback_email']
                 buildConfigField "String", "CAPTCHA_URL", props['debug_captcha_url']
+            }
+        }
+    }
+
+    buildTypes.configureEach { buildType ->
+        // Export only this build type's values, never both environments' keys.
+        ["MAPS_API_KEY", "GOOGLE_AUTH_CLIENT_ID", "CAPTCHA_SITE_KEY"].each { key ->
+            def value = secretProperties.getProperty("${buildType.name.toUpperCase(Locale.ROOT)}_${key}")
+                ?: secretProperties.getProperty(key)
+                ?: secretDefaults.getProperty(key)
+            // Keep compatibility with existing quoted values in secrets.properties.
+            value = value.trim()
+            if (value.startsWith('"') && value.endsWith('"')) {
+                value = value.substring(1, value.length() - 1)
+            }
+            buildType.buildConfigField "String", key, groovy.json.JsonOutput.toJson(value)
+            if (key == "MAPS_API_KEY") {
+                buildType.manifestPlaceholders[key] = value
             }
         }
     }

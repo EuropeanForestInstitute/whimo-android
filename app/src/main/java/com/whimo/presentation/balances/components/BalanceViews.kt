@@ -232,7 +232,7 @@ fun BalanceCommodityList(
     networkAvailable: Boolean = true,
     items: List<BalanceCommodityItemModel>,
     onBalanceClick: (BalanceCommodityItemModel) -> Unit = {},
-    onConvertClick: (CommodityModel) -> Unit = {},
+    onConvertClick: (BalanceCommodityItemModel) -> Unit = {},
 ) {
     val size = items.size
 
@@ -244,7 +244,7 @@ fun BalanceCommodityList(
                 isEnabled = networkAvailable,
                 item = item,
                 onClick = { onBalanceClick(item) },
-                onConvertClick = { onConvertClick(item.commodity) },
+                onConvertClick = { onConvertClick(item) },
             )
 
             if (index < size - 1) {
@@ -267,7 +267,7 @@ fun CommodityBalancesList(
         modifier = modifier,
         networkAvailable = networkAvailable,
         items = commodities.map { BalanceCommodityItemModel(commodity = it) },
-        onConvertClick = onSelect,
+        onConvertClick = { onSelect(it.commodity) },
     )
 }
 

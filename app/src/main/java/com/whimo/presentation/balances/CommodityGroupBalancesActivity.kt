@@ -38,7 +38,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.whimo.domain.commodity.models.CommodityGroupModel
-import com.whimo.domain.commodity.models.CommodityModel
 import com.whimo.extensions.getParcelableCompatExtra
 import com.whimo.navigation.navgraphs.CommodityBalancesNavGraph
 import com.whimo.network.authenticator.SessionManager
@@ -60,7 +59,9 @@ class CommodityGroupBalancesActivity : ComponentActivity(), OnBackPressedDispatc
         val balanceDetailsArgs = intent
             .getStringExtra(BALANCE_DETAILS_ARGS)
             ?.fromJsonArgs<BalanceDetailsArgs>()
-        val convertCommodity = intent.getParcelableCompatExtra<CommodityModel>(CONVERT_COMMODITY)
+        val convertRecipesArgs = intent
+            .getStringExtra(CONVERT_RECIPES_ARGS)
+            ?.fromJsonArgs<ConvertRecipesArgs>()
 
         setContent {
             val navController = rememberNavController()
@@ -80,7 +81,7 @@ class CommodityGroupBalancesActivity : ComponentActivity(), OnBackPressedDispatc
                                 navController = navController,
                                 commodityGroup = commodityGroup,
                                 balanceDetailsArgs = balanceDetailsArgs,
-                                convertCommodity = convertCommodity,
+                                convertRecipesArgs = convertRecipesArgs,
                             )
                         }
                     }
@@ -99,7 +100,7 @@ class CommodityGroupBalancesActivity : ComponentActivity(), OnBackPressedDispatc
     companion object {
         private const val COMMODITY_GROUP = "commodity_group"
         private const val BALANCE_DETAILS_ARGS = "balance_details_args"
-        private const val CONVERT_COMMODITY = "convert_commodity"
+        private const val CONVERT_RECIPES_ARGS = "convert_recipes_args"
 
         fun openCommodityGroupBalances(
             context: Context,
@@ -124,10 +125,10 @@ class CommodityGroupBalancesActivity : ComponentActivity(), OnBackPressedDispatc
         fun openConvertRecipes(
             context: Context,
             launcher: ManagedActivityResultLauncher<Intent, ActivityResult>,
-            commodityModel: CommodityModel,
+            args: ConvertRecipesArgs,
         ) {
             val intent = Intent(context, CommodityGroupBalancesActivity::class.java)
-            intent.putExtra(CONVERT_COMMODITY, commodityModel)
+            intent.putExtra(CONVERT_RECIPES_ARGS, args.toJsonArgs())
             launcher.launch(intent)
         }
     }

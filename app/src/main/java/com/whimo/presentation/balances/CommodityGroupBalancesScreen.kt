@@ -113,7 +113,12 @@ fun CommodityGroupBalancesScreen(
                 },
                 onConvertClick = {
                     navController.navigate(
-                        Screens.ConvertRecipes.putArgs(Screens.ARG_KEY_JSON to it.toJsonArgs())
+                        Screens.ConvertRecipes.putArgs(
+                            Screens.ARG_KEY_JSON to ConvertRecipesArgs(
+                                commodity = it.commodity,
+                                harvestSeason = it.harvestSeason,
+                            ).toJsonArgs()
+                        )
                     )
                 },
             )

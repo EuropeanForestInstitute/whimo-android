@@ -191,7 +191,14 @@ fun CommodityGroupsScreen(
                             )
                         },
                         onConvertClick = {
-                            CommodityGroupBalancesActivity.openConvertRecipes(context, launcher, it)
+                            CommodityGroupBalancesActivity.openConvertRecipes(
+                                context = context,
+                                launcher = launcher,
+                                args = ConvertRecipesArgs(
+                                    commodity = it.commodity,
+                                    harvestSeason = it.harvestSeason ?: binding.selectedHarvestSeason,
+                                ),
+                            )
                         },
                     )
                 }

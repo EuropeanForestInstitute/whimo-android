@@ -147,7 +147,10 @@ fun BalanceDetailsScreen(
                     {
                         navController.navigate(
                             Screens.ConvertRecipes.putArgs(
-                                Screens.ARG_KEY_JSON to commodity.toJsonArgs()
+                                Screens.ARG_KEY_JSON to ConvertRecipesArgs(
+                                    commodity = commodity,
+                                    harvestSeason = binding.harvestSeason,
+                                ).toJsonArgs()
                             )
                         )
                     }

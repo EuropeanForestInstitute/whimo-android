@@ -56,8 +56,8 @@ import androidx.navigation.compose.rememberNavController
 import com.whimo.R
 import com.whimo.base.ObserveEffects
 import com.whimo.domain.commodity.models.ConvertQuantityModel
-import com.whimo.domain.commodity.models.ConvertRecipeModel
 import com.whimo.extensions.findActivity
+import com.whimo.presentation.balances.ConvertCommodityArgs
 import com.whimo.presentation.createtransaction.components.CreateTransactionDialog
 import com.whimo.presentation.createtransaction.components.CreateTransactionWarning
 import com.whimo.presentation.main.components.Toolbar2
@@ -84,7 +84,7 @@ private fun Preview() {
 fun ConvertCommodityScreen(
     modifier: Modifier,
     navController: NavHostController,
-    recipe: ConvertRecipeModel? = null,
+    args: ConvertCommodityArgs? = null,
     viewModel: ConvertCommodityViewModel? = koinViewModel(),
 ) {
     val binding = viewModel?.observeViewBinding() ?: ConvertCommodityContract.Binding()
@@ -116,7 +116,7 @@ fun ConvertCommodityScreen(
     }
 
     LifecycleEventEffect(event = Lifecycle.Event.ON_CREATE) {
-        viewModel?.setEvent(ConvertCommodityContract.Event.OnCreate(recipe))
+        viewModel?.setEvent(ConvertCommodityContract.Event.OnCreate(args))
     }
 
     Column(

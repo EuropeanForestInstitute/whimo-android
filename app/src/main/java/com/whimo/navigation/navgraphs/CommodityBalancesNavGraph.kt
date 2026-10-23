@@ -30,12 +30,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.whimo.domain.commodity.models.CommodityGroupModel
-import com.whimo.domain.commodity.models.CommodityModel
-import com.whimo.domain.commodity.models.ConvertRecipeModel
 import com.whimo.navigation.Screens
 import com.whimo.presentation.balances.BalanceDetailsArgs
 import com.whimo.presentation.balances.BalanceDetailsScreen
 import com.whimo.presentation.balances.CommodityGroupBalancesScreen
+import com.whimo.presentation.balances.ConvertCommodityArgs
+import com.whimo.presentation.balances.ConvertRecipesArgs
 import com.whimo.presentation.balances.convert.ConvertCommodityScreen
 import com.whimo.presentation.balances.convert.ConvertRecipesScreen
 import com.whimo.utils.fromJsonArgs
@@ -46,7 +46,7 @@ fun CommodityBalancesNavGraph(
     navController: NavHostController,
     commodityGroup: CommodityGroupModel?,
     balanceDetailsArgs: BalanceDetailsArgs? = null,
-    convertCommodity: CommodityModel? = null,
+    convertRecipesArgs: ConvertRecipesArgs? = null,
 ) {
     NavHost(
         modifier = modifier.fillMaxSize(),
@@ -62,11 +62,11 @@ fun CommodityBalancesNavGraph(
                         args = balanceDetailsArgs,
                     )
                 }
-                convertCommodity != null -> {
+                convertRecipesArgs != null -> {
                     ConvertRecipesScreen(
                         modifier = modifier.fillMaxSize(),
                         navController = navController,
-                        commodityModel = convertCommodity,
+                        args = convertRecipesArgs,
                     )
                 }
                 else -> {
@@ -92,7 +92,7 @@ fun CommodityBalancesNavGraph(
             ConvertRecipesScreen(
                 modifier = modifier.fillMaxSize(),
                 navController = navController,
-                commodityModel = json?.fromJsonArgs<CommodityModel>(),
+                args = json?.fromJsonArgs<ConvertRecipesArgs>(),
             )
         }
         composable(
@@ -126,7 +126,7 @@ fun CommodityBalancesNavGraph(
             ConvertCommodityScreen(
                 modifier = modifier.fillMaxSize(),
                 navController = navController,
-                recipe = json?.fromJsonArgs<ConvertRecipeModel>(),
+                args = json?.fromJsonArgs<ConvertCommodityArgs>(),
             )
         }
     }

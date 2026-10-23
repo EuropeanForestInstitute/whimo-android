@@ -25,7 +25,7 @@ import com.whimo.base.CoreViewBinding
 import com.whimo.base.CoreViewEvent
 import com.whimo.base.CoreViewSideEffect
 import com.whimo.domain.commodity.models.ConvertQuantityModel
-import com.whimo.domain.commodity.models.ConvertRecipeModel
+import com.whimo.presentation.balances.ConvertCommodityArgs
 
 object ConvertCommodityContract {
     data class Binding(
@@ -34,7 +34,7 @@ object ConvertCommodityContract {
     ) : CoreViewBinding
 
     sealed class Event : CoreViewEvent {
-        data class OnCreate(val recipe: ConvertRecipeModel?) : Event()
+        data class OnCreate(val args: ConvertCommodityArgs?) : Event()
         data class OnQuantityChange(val model: ConvertQuantityModel, val quantity: String) : Event()
         data object OnConvertClick : Event()
         data object Convert : Event()

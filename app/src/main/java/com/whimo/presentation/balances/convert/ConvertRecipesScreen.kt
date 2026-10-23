@@ -49,9 +49,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.whimo.R
 import com.whimo.base.ObserveEffects
-import com.whimo.domain.commodity.models.CommodityModel
 import com.whimo.domain.commodity.models.ConvertRecipeModel
 import com.whimo.navigation.Screens
+import com.whimo.presentation.balances.ConvertCommodityArgs
+import com.whimo.presentation.balances.ConvertRecipesArgs
 import com.whimo.presentation.balances.components.ConvertRecipeItem
 import com.whimo.presentation.main.components.EmptyState
 import com.whimo.presentation.main.components.LoadingState
@@ -77,7 +78,7 @@ private fun Preview() {
 fun ConvertRecipesScreen(
     modifier: Modifier,
     navController: NavHostController,
-    commodityModel: CommodityModel? = null,
+    args: ConvertRecipesArgs? = null,
     viewModel: ConvertRecipesViewModel? = koinViewModel(),
 ) {
     val binding = viewModel?.observeViewBinding() ?: ConvertRecipesContract.Binding()
@@ -101,7 +102,7 @@ fun ConvertRecipesScreen(
     }
 
     LifecycleEventEffect(event = Lifecycle.Event.ON_CREATE) {
-        viewModel?.setEvent(ConvertRecipesContract.Event.OnCreate(commodityModel))
+        viewModel?.setEvent(ConvertRecipesContract.Event.OnCreate(args?.commodity))
     }
 
     Column(
@@ -121,7 +122,12 @@ fun ConvertRecipesScreen(
                 recipes = binding.recipes!!,
                 onClick = {
                     navController.navigate(
-                        Screens.ConvertCommodity.putArgs(Screens.ARG_KEY_JSON to it.toJsonArgs())
+                        Screens.ConvertCommodity.putArgs(
+                            Screens.ARG_KEY_JSON to ConvertCommodityArgs(
+                                recipe = it,
+                                harvestSeason = args?.harvestSeason,
+                            ).toJsonArgs()
+                        )
                     )
                 }
             )

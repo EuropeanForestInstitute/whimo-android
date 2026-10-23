@@ -28,7 +28,9 @@ import com.whimo.data.base.common.onSuccess
 import com.whimo.domain.commodity.ConvertCommodityInteractor
 import com.whimo.domain.commodity.models.ConvertQuantityModel
 import com.whimo.domain.commodity.models.ConvertRecipeModel
+import com.whimo.domain.harvestseasons.models.HarvestSeasonModel
 import com.whimo.network.ErrorHandler
+import com.whimo.presentation.balances.ConvertCommodityArgs
 
 class ConvertCommodityViewModel(
     private val interactor: ConvertCommodityInteractor,
@@ -38,6 +40,7 @@ class ConvertCommodityViewModel(
     private var recipe: ConvertRecipeModel? = null
     private var inputs: List<ConvertQuantityModel>? = null
     private var outputs: List<ConvertQuantityModel>? = null
+    private var harvestSeason: HarvestSeasonModel? = null
 
     override fun createBinding(): ConvertCommodityContract.Binding {
         return ConvertCommodityContract.Binding()
@@ -46,7 +49,7 @@ class ConvertCommodityViewModel(
     override fun handleEvents(event: CoreViewEvent) {
         super.handleEvents(event)
         when (event) {
-            is ConvertCommodityContract.Event.OnCreate -> onCreate(event.recipe)
+            is ConvertCommodityContract.Event.OnCreate -> onCreate(event.args)
             is ConvertCommodityContract.Event.OnQuantityChange -> onQuantityChange(event.model, event.quantity)
             is ConvertCommodityContract.Event.OnConvertClick -> onConvertClick()
             is ConvertCommodityContract.Event.Convert -> convert()
@@ -64,8 +67,10 @@ class ConvertCommodityViewModel(
         }
     }
 
-    private fun onCreate(recipe: ConvertRecipeModel?) {
+    private fun onCreate(args: ConvertCommodityArgs?) {
+        val recipe = args?.recipe
         this.recipe = recipe
+        harvestSeason = args?.harvestSeason
 
         inputs = recipe?.inputs
         outputs = recipe?.outputs
@@ -88,7 +93,7 @@ class ConvertCommodityViewModel(
         launch {
             setEffect(ConvertCommodityContract.Effect.ToggleLoader(true))
 
-            interactor.convertCommodity(recipe!!.id, inputs!!, outputs!!)
+            interactor.convertCommodity(recipe!!.id, inputs!!, outputs!!, harvestSeason)
                 .onSuccess {
                     setEffect(
                         ConvertCommodityContract.Effect.ToggleLoader(false),

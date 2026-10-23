@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- DEV stays inside the adaptive icon safe area, including themed icons. -->
+    <path
+        android:fillColor="@color/berry_blue"
+        android:fillType="evenOdd"
+        android:pathData="M38,67H43C46,67 48,69 48,72C48,75 46,77 43,77H38ZM41,69.5V74.5H43C44.5,74.5 45,73.5 45,72C45,70.5 44.5,69.5 43,69.5ZM51,67H59V69.5H54V70.75H58V73.25H54V74.5H59V77H51ZM61,67H64L66.5,73.5L69,67H72L68,77H65Z" />
+</vector>
